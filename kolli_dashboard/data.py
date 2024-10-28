@@ -58,17 +58,16 @@ version = "1.0.0"
 def get_label(var):
     return data["labels"].loc[data["labels"]["VAR"] == var, "LABEL"].values[0]
 
-def plot_likert_chart(input, data, *vars):
+def plot_likert_chart(input, data, *vars, width=0.15):
     plot_percentage = input.number_format() == "percent"
-    width = 0.15 if len(vars) < 4 else 0.5
 
-    df = data[[*vars]] #.copy().dropna()
+    df = data[[*vars]]
 
     for var in vars:
         df[var] = df[var].apply(to_scale_minus_plus)
         df = df.rename(columns={var: get_label(var)})
 
-    # Bug in plot-likert: Crashes with percentages if there a no answers for one question
+    # Bug in plot-likert? Crashes with percentages if there a no answers for one question
     df1 = df.copy()
     df1.dropna(axis=1, how="all", inplace=True)
 

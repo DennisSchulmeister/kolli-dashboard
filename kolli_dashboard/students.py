@@ -263,7 +263,8 @@ def survey1_server(input, output, session):
                                  "VU03_03", "VU03_04",
                                  "V209_01", "V209_02", "V209_03",
                                  "V209_04", "V209_05", "V209_06",
-                                 "V209_07", "V209_08", "V209_09")
+                                 "V209_07", "V209_08", "V209_09",
+                                 width = 0.4)
 
 def survey2_server(input, output, session):
     @reactive.calc
@@ -330,11 +331,11 @@ def survey2_server(input, output, session):
     
     @render.plot
     def plot_klarheit_likert2():
-        return plot_likert_chart(input, filtered_surveys2(), "ZW04_01", "ZW04_02", "ZW04_03", "ZW04_04")
+        return plot_likert_chart(input, filtered_surveys2(), "ZW04_01", "ZW04_02", "ZW04_03", "ZW04_04", width=0.4)
     
     @render.plot
     def plot_zufriedenheit_likert2():
-        return plot_likert_chart(input, filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08")
+        return plot_likert_chart(input, filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08", width=0.4)
 
 def survey3_server(input, output, session):
     @reactive.calc
