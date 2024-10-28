@@ -9,11 +9,11 @@ from .infobox  import infobox_ui, infobox_server
 from .sidebar  import sidebar_ui, sidebar_server
 from .students import students_ui, students_server
 from .teachers import teachers_ui, teachers_server
-from .utils    import get_src_dir
+from .utils    import src_dir
 from shiny     import App, ui
 
 app_ui = ui.page_navbar(
-    ui.head_content(ui.include_css(str(get_src_dir() / "www" / "style.css"))),
+    ui.head_content(ui.include_css(str(src_dir / "www" / "style.css"))),
     ui.nav_spacer(),
     ui.nav_panel("Studierende", students_ui(), value="students"),
     ui.nav_panel("Lehrende", teachers_ui(), value="teachers"),
@@ -32,4 +32,4 @@ def server(input, output, session):
     teachers_server(input, output, session)
     infobox_server(input, output, session)
 
-app = App(app_ui, server)
+app = App(app_ui, server, static_assets=str(src_dir / "www"))

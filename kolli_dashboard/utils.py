@@ -7,9 +7,18 @@
 
 from pathlib import Path
 
-def get_src_dir():
-    """
-    Get string with the source directory path. Use it like so to address files
-    in the source tree: `get_src_dir() / "file.ext"`
-    """
-    return Path(__file__).resolve().parent
+src_dir = Path(__file__).resolve().parent
+
+scale_minus_plus = ["--", "-", "±", "+", "++"]
+
+def to_scale_minus_plus(nr):
+    if nr == 1:
+        return "--"
+    elif nr == 2:
+        return "-"
+    elif nr == 3:
+        return "+"
+    elif nr == 4:
+        return "++"
+    else:
+        return "±"

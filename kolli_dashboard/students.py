@@ -5,11 +5,17 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from .data import data
-from shiny import reactive, render, ui
+from .data  import data, get_label, plot_likert_chart
+from shiny  import reactive, render, ui
 
-import pandas as pd
-import plot_likert
+import faicons
+import pandas            as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+
+icon_students = faicons.icon_svg("graduation-cap", width="50px")
+icon_courses  = faicons.icon_svg("users", width="50px")
+icon_teachers = faicons.icon_svg("chalkboard-user", width="50px")
 
 def students_ui():
     return [
@@ -23,34 +29,82 @@ def students_ui():
 
 def survey1_ui():
     return ui.div(
+        ui.p(
+            """
+            Die studentische Vorumfrage findet am Anfang des Semesters statt, nachdem den Studierenden
+            die Inhalte der Lehrveranstaltung und das KoLLI-Konzept vorgestellt wurden. Sie fragt die
+            Haltung der Studierenden zur bevorstehenden Partizipation ab, um zu untersuchen, inwiefern
+            sich diese im Lauf des Semesters verändert.
+            """,
+        ),
+
         ui.layout_column_wrap(
-            ui.value_box("Studierende", ui.output_ui("count_students1"), showcase=None, theme=ui.value_box_theme(bg="#f3f7fc", fg="#606060")),
-            ui.value_box("Kurse", ui.output_ui("count_courses1"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#606060")),
-            ui.value_box("Lehrende", ui.output_ui("count_teachers1"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#60606")),
+            ui.value_box(
+                title    = "Studierende",
+                value    = ui.output_ui("count_students1"),
+                showcase = icon_students,
+                theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Kurse",
+                value    = ui.output_ui("count_courses1"),
+                showcase = icon_courses,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Lehrende",
+                value    = ui.output_ui("count_teachers1"),
+                showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
         ),
         ui.output_ui("no_data1"),
+        ui.layout_columns(
+            ui.h5("Vorwissen und Interesse"),
+            ui.output_plot("plot_vorwissen_likert"),
+            ui.output_data_frame("df_vorwissen1"),
+
+            ui.h5("Mitgestaltung"),
+            ui.output_plot("plot_mitgestaltung_likert"),
+            ui.div(
+                ui.div(get_label("V203_01"), class_="text-center fw-bold"),
+                ui.output_plot("plot_mitgestaltung_hist"),
+            ),
+
+            ui.div(
+                ui.h5("Student Engagement"),
+                ui.output_plot("plot_engagement_likert", height="800px"),
+            ),
+            ui.div(
+                ui.h5("Sonstige Bemerkungen"),
+                ui.output_data_frame("df_bemerkungen1"),
+            ),
+            col_widths = (12, 8, 4, 12, 8, 4, 8, 4),
+        ),
         class_="my-flex-with-gaps",
     )
-    
-    #[
-        # ui.output_plot("test_likert"),
-        # ui.panel_well(
-        #     """
-        #     Die studentische Vorumfrage findet am Anfang des Semesters statt, nachdem den Studierenden
-        #     die Inhalte der Lehrveranstaltung und das KoLLI-Konzept vorgestellt wurden. Sie fragt die
-        #     Haltung der Studierenden zur bevorstehenden Partizipation ab, um zu untersuchen, inwiefern
-        #     sich diese im Lauf des Semesters verändert.
-        #     """,
-        #     class_="mt-4",
-        # ),
-    #]
 
 def survey2_ui():
     return ui.div(
         ui.layout_column_wrap(
-            ui.value_box("Studierende", ui.output_ui("count_students2"), showcase=None, theme=ui.value_box_theme(bg="#f3f7fc", fg="#606060")),
-            ui.value_box("Kurse", ui.output_ui("count_courses2"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#606060")),
-            ui.value_box("Lehrende", ui.output_ui("count_teachers2"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#60606")),
+            ui.value_box(
+                title    = "Studierende",
+                value    = ui.output_ui("count_students2"),
+                showcase = icon_students,
+                theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Kurse",
+                value    = ui.output_ui("count_courses2"),
+                showcase = icon_courses,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Lehrende",
+                value    = ui.output_ui("count_teachers2"),
+                showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
         ),
         ui.output_ui("no_data2"),
         class_="my-flex-with-gaps",
@@ -59,9 +113,24 @@ def survey2_ui():
 def survey3_ui():
     return ui.div(
         ui.layout_column_wrap(
-            ui.value_box("Studierende", ui.output_ui("count_students3"), showcase=None, theme=ui.value_box_theme(bg="#f3f7fc", fg="#606060")),
-            ui.value_box("Kurse", ui.output_ui("count_courses3"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#606060")),
-            ui.value_box("Lehrende", ui.output_ui("count_teachers3"), showcase=None, theme=ui.value_box_theme(bg="#fbfcf3", fg="#60606")),
+            ui.value_box(
+                title    = "Studierende",
+                value    = ui.output_ui("count_students3"),
+                showcase = icon_students,
+                theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Kurse",
+                value    = ui.output_ui("count_courses3"),
+                showcase = icon_courses,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
+            ),
+            ui.value_box(
+                title    = "Lehrende",
+                value    = ui.output_ui("count_teachers3"),
+                showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
         ),
         ui.output_ui("no_data3"),
         class_="my-flex-with-gaps",
@@ -113,20 +182,52 @@ def survey1_server(input, output, session):
     def no_data1():
         if filtered_surveys1().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+    
+    @render.data_frame
+    def df_vorwissen1():
+        df = filtered_surveys1()[["V202_01"]].astype(str)
+        df = df[df["V202_01"].apply(lambda x: len(x.strip()) > 3)]
+        df = df.rename(columns={"V202_01": get_label("V202_01")})
+        return render.DataGrid(df, width="100%", height="400px")
 
-    # @render.plot
-    # def test_likert():
-    #     return plot_likert.plot_likert(
-    #         df = pd.DataFrame({
-    #             'Dies ist eine ganz lange Frage mit furchtbar viel Text. Die will gar nicht aufhören.': {0: 'Strongly disagree', 1: 'Agree',},
-    #             'Diese Frage hat jetzt auch nicht gerade wenig Text.': {0: 'Disagree', 1: 'Strongly agree',},
-    #         }),
-    #         plot_scale      = plot_likert.scales.agree,
-    #         plot_percentage = input.number_format() == "percent",
-    #         bar_labels      = True,
-    #         width           = 0.15,
-    #         legend          = 1,
-    #     )
+    @render.data_frame
+    def df_bemerkungen1():
+        df = filtered_surveys1()[["V210_01"]].astype(str)
+        df = df[df["V210_01"].apply(lambda x: len(x.strip()) > 3)]
+        df = df.rename(columns={"V210_01": get_label("V210_01")})
+        return render.DataGrid(df, width="100%", height="400px")
+
+    @render.plot
+    def plot_mitgestaltung_hist():
+        fig, ax = plt.subplots()
+        density = False
+        df      = filtered_surveys1()["V203_01"].dropna()
+
+        if input.number_format() == "percent":
+            density = True
+            ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1))
+
+        ax.hist(df, 11, density=density)
+        ax.set_xlabel("Grad der Mitgestaltung")
+        ax.set_ylabel("Anzahl Antworten")
+
+        return fig
+
+    @render.plot
+    def plot_vorwissen_likert():
+        return plot_likert_chart(input, filtered_surveys1(), "V201_01", "V201_02")
+
+    @render.plot
+    def plot_mitgestaltung_likert():
+        return plot_likert_chart(input, filtered_surveys1(), "V204_01", "V204_02")
+
+    @render.plot
+    def plot_engagement_likert():
+        return plot_likert_chart(input, filtered_surveys1(),
+                                 "VU03_03", "VU03_04",
+                                 "V209_01", "V209_02", "V209_03",
+                                 "V209_04", "V209_05", "V209_06",
+                                 "V209_07", "V209_08", "V209_09")
 
 def survey2_server(input, output, session):
     @reactive.calc

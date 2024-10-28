@@ -28,14 +28,10 @@ def sidebar_ui():
             ui.div(
                 ui.markdown(
                     """
-                    Kollaborative Lehr-Lern-Innovationen werden von Lehrenden und Studierenden partizipativ gestaltet,
-                    indem die Ideenfindung, Umsetzung, Implementierung und Evaluation von Lehr-Lern-Innovationen zum
-                    Gegenstand der Lehrveranstaltung selbst wird. Die Arbeit an den Lehr-Lern-Innovationen wird
-                    dementsprechend didaktisch in der Lehrveranstaltung verankert und mit ihren primären Lernzielen
-                    verknüpft.
-                    
-                    KoLLI ist ein an der DHBW Karlsruhe entwickelter Prozessleitfaden, der Lehrende hierbei unterstützt.
+                    KoLLI ist ein an der DHBW Karlsruhe entwickelter Prozessleitfaden, der Lehrende dabei
+                    unterstützt, Lehr-Lern-Innovationen mit Studierenden partizipativ zu gestalten.
                     Diese Anwendung zeigt die Evaluationsergebnisse des dazugehörigen Forschungsprojekts.
+                    Das Projekt wird von der Stiftung Innovation in der Hochschullehre gefördert.
                     """
                 ),
                 style  = "text-align: justify; hyphens: auto; font-size:75%;",
@@ -46,7 +42,7 @@ def sidebar_ui():
                     ui.span(" | ", class_="text-secondary"),
                     ui.strong("Stand:"), f" {data["max_date"]}"
                 ),
-                ui.tags.img(src="dhbw-logo.svg", height="60px", class_="mt-2"),
+                ui.img(src="dhbw-logo.svg", height="60px", class_="mt-2"),
                 class_="text-center",
             ),
         ),
