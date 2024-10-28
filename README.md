@@ -9,7 +9,19 @@ Forschungsprojekt KoLLI: Dashboard
 Übersicht
 ---------
 
-TODO
+Kooperative Lehr-Lern-Innovationen beziehen die Studierenden in die Verbesserung der
+Lehre mit ein, indem Lehrende und Studierende (je nach Zeitpunkt und gewünschtem
+Umfang der Partizipation) gemeinsam an der Recherche, Vorauswahl, Realisierung,
+Implementierung und Evaluation von Lehr-Lern-Innovationen arbeiten. Die Arbeit an
+den Lehr-Lern-Innovationen wird hierfür derart didaktisch in der Lehrveranstaltung
+verankert, dass sie auf Lernziele der Lehrveranstaltung einzahlt.
+
+KoLLI ist ein an der DHBW Karlsruhe entwickelter Prozessleitfaden, der Lehrende
+hierbei unterstützt. Diese Anwendung zeigt die Evaluationsergebnisse des dazugehörigen
+Forschungsprojekts. Das Projekt wird von der Stiftung Innovation in der Hochschullehre
+gefördert. Die Projektlaufzeit ist von April 2024 bis April 2026.
+
+![Screenshot](screenshot.png)
 
 Wichtige Kommandos
 ------------------
@@ -95,12 +107,13 @@ in der Dokumentation.
 Copyright
 ---------
 
-Forschungsprojekt KoLLI: Dashboard <br/>
-© 2024 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik <br>
-Dennis Schulmeister-Zimolong &lt;[dennis@wpvs.de](mailto:dennis@wpvs.de)&gt; <br>
+**Forschungsprojekt KoLLI: Dashboard** <br/>
+**© 2024 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik** <br>
+**Dennis Schulmeister-Zimolong &lt;[dennis@wpvs.de](mailto:dennis@wpvs.de)&gt;** <br>
 Lizenziert unter der BSD 3-Clause Lizenz <br>
 
 Webseite: https://kollaborative-lehre.de
 
 _Das Forschungsprojekt KoLLI (Kooperative Lehr-Lern-Innovation) wird von der
-Stiftung Innovation in der Hochschullehre gefördert._
+Stiftung Innovation in der Hochschullehre gefördert. Die Projektlaufzeit ist
+von April 2024 bis April 2026._
