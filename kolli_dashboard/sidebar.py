@@ -41,7 +41,7 @@ def sidebar_ui():
                 ui.div(
                     ui.strong("Version:"), f" {version}",
                     ui.span(" | ", class_="text-secondary"),
-                    ui.strong("Stand:"), f" {data["max_date"]}"
+                    ui.strong("Stand:"), f" {data['max_date']}"
                 ),
                 ui.img(src="dhbw-logo.svg", height="60px", class_="mt-2"),
                 class_="text-center",

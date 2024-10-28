@@ -34,7 +34,7 @@ def infobox_server(input, output, session):
             footer     = ui.markdown(
                 f"""
                 **Version:** {version} <span class="text-secondary">|</span>
-                **Stand:** {data["max_date"]}     <span class="text-secondary">|</span>
+                **Stand:** {data['max_date']} <span class="text-secondary">|</span>
                 [Quellcode](https://github.com/DennisSchulmeister/kolli-dashboard)
                 """
             ),
