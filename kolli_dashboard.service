@@ -10,12 +10,11 @@ Description=KoLLI-Dashboard (Web Server)
 After=network.target
 
 [Service]
-WorkingDirectory=/opt/kolli_dashboard
-ExecStart=/usr/bin/poetry run your-server-script
+WorkingDirectory=/opt/kolli-dashboard
+ExecStart=/usr/bin/poetry run server
 Restart=on-failure
 RestartSec=5
 User=your-username
-Environment=PATH=/path/to/poetry/bin:$PATH
 
 [Install]
 WantedBy=multi-user.target
