@@ -29,10 +29,10 @@ def __init__():
     data.loc[filtered_rows.index, "QUESTNNR"] = "S-KAWE-1"
 
     return {
-        "data":     data,
+        "answers":  data,
         "labels":   labels,
         "max_date": data["STARTED"].max().strftime('%d.%m.%Y'),
-        "teachers": data['QUESTNNR'].str.split('-', expand=True)[1].unique().tolist(),
+        "teachers": data["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
     }
 
 data    = __init__()

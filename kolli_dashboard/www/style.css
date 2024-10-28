@@ -1,3 +1,9 @@
 .sidebar-content {
     height: 100%;
 }
+
+.my-flex-with-gaps {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}

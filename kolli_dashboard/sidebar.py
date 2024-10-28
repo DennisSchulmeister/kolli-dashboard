@@ -12,8 +12,8 @@ def sidebar_ui():
     return ui.sidebar(
         ui.div(
             ui.h5("Filterkriterien"),
-            ui.input_selectize("teacher", "Lehrperson", multiple=True, choices=data["teachers"]),
-            ui.input_date_range("time_range", "Zeitraum", start="2024-09-01", end="2026-04-30"),
+            ui.input_selectize("teachers", "Lehrperson", multiple=True, choices=data["teachers"]),
+            ui.input_date_range("date_range", "Zeitraum", start="2024-09-01", end="2026-04-30"),
         ),
 
         ui.div(
