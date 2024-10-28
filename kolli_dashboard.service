@@ -1,0 +1,21 @@
+# On Linux copy this file to /etc/systemd/system and change the values below.
+# Afterwards use the following shell commands to automatically start the server:
+#
+# sudo systemctl daemon-reload
+# sudo systemctl enable kolli_dashboard.service
+# sudo systemctl start kolli_dashboard.service
+
+[Unit]
+Description=KoLLI-Dashboard (Web Server)
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/kolli_dashboard
+ExecStart=/usr/bin/poetry run your-server-script
+Restart=on-failure
+RestartSec=5
+User=your-username
+Environment=PATH=/path/to/poetry/bin:$PATH
+
+[Install]
+WantedBy=multi-user.target
