@@ -18,16 +18,33 @@ def __init__():
      * `max_date`: A string with the formatted date of the last survey
      * `teachers`: A list of the teacher IDs
     """
+    # Read data files
     src_dir = get_src_dir()
     data    = pd.read_csv(str(src_dir / "data" / "data.csv"),   encoding="utf-16", sep="\t", quotechar='"', decimal=".")
     labels  = pd.read_csv(str(src_dir / "data" / "labels.csv"), encoding="utf-16", sep="\t", quotechar='"', decimal=".")
 
     data["STARTED"] = pd.to_datetime(data["STARTED"])
-    data = data[data["CASE"] != 242]
 
+    # Repair survey that was accidentally run for the wrong teacher
+    data = data[data["CASE"] != 242]
     filtered_rows = data[(data["QUESTNNR"] == "S-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
     data.loc[filtered_rows.index, "QUESTNNR"] = "S-KAWE-1"
 
+    # Make initial pre-survey compatible with the later version
+    data["VU03_01"] = data["VU03_01"].clip(upper=4)
+    data["VU03_02"] = data["VU03_02"].clip(upper=4)
+    data["VU03_03"] = data["VU03_03"].clip(upper=4)
+    data["VU03_04"] = data["VU03_04"].clip(upper=4)
+
+    data.loc[data["VU03_01"].notnull(), "V204_02"] = data["VU03_01"]
+    data.loc[data["VU01_01"].notnull(), "V202_01"] = data["VU01_01"]
+    data.loc[data["VU03_02"].notnull(), "V201_02"] = data["VU03_02"]
+
+    data["V210_01"] = data.apply(lambda row: "Erwartungen: " + str(row["VU02_01"]) if pd.notnull(row["VU02_01"]) else row["V210_01"], axis=1)
+
+    data.drop(["VU01_01", "VU02_01", "VU03_01", "VU03_02"], axis=1, inplace=True)
+
+    # Return final result
     return {
         "answers":  data,
         "labels":   labels,
