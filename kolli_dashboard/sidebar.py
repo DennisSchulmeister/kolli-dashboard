@@ -32,6 +32,7 @@ def sidebar_ui():
                     unterstützt, Lehr-Lern-Innovationen mit Studierenden partizipativ zu gestalten.
                     Diese Anwendung zeigt die Evaluationsergebnisse des dazugehörigen Forschungsprojekts.
                     Das Projekt wird von der Stiftung Innovation in der Hochschullehre gefördert.
+                    Die Projektlaufzeit ist von April 2024 bis April 2026.
                     """
                 ),
                 style  = "text-align: justify; hyphens: auto; font-size:75%;",

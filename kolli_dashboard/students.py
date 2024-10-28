@@ -39,20 +39,21 @@ def survey1_ui():
         ),
         ui.layout_column_wrap(
             ui.value_box(
-                title    = "Studierende",
-                value    = ui.output_ui("count_students1"),
+                "Studierende",
+                ui.output_ui("count_students1"),
                 showcase = icon_students,
                 theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
             ),
             ui.value_box(
-                title    = "Kurse",
-                value    = ui.output_ui("count_courses1"),
+                "Kurse",
+                ui.output_ui("count_courses1"),
                 showcase = icon_courses,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
             ),
             ui.value_box(
-                title    = "Lehrende",
-                value    = ui.output_ui("count_teachers1"),
+                "Lehrende",
+                ui.output_ui("count_teachers1"),
+                ui.output_ui("id_teachers1"),
                 showcase = icon_teachers,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
@@ -95,20 +96,21 @@ def survey2_ui():
         ),
         ui.layout_column_wrap(
             ui.value_box(
-                title    = "Studierende",
-                value    = ui.output_ui("count_students2"),
+                "Studierende",
+                ui.output_ui("count_students2"),
                 showcase = icon_students,
                 theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
             ),
             ui.value_box(
-                title    = "Kurse",
-                value    = ui.output_ui("count_courses2"),
+                "Kurse",
+                ui.output_ui("count_courses2"),
                 showcase = icon_courses,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
             ),
             ui.value_box(
-                title    = "Lehrende",
-                value    = ui.output_ui("count_teachers2"),
+                "Lehrende",
+                ui.output_ui("count_teachers2"),
+                ui.output_ui("id_teachers2"),
                 showcase = icon_teachers,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
@@ -140,20 +142,21 @@ def survey3_ui():
         ),
         ui.layout_column_wrap(
             ui.value_box(
-                title    = "Studierende",
-                value    = ui.output_ui("count_students3"),
+                "Studierende",
+                ui.output_ui("count_students3"),
                 showcase = icon_students,
                 theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
             ),
             ui.value_box(
-                title    = "Kurse",
-                value    = ui.output_ui("count_courses3"),
+                "Kurse",
+                ui.output_ui("count_courses3"),
                 showcase = icon_courses,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
             ),
             ui.value_box(
-                title    = "Lehrende",
-                value    = ui.output_ui("count_teachers3"),
+                "Lehrende",
+                ui.output_ui("count_teachers3"),
+                ui.output_ui("id_teachers3"),
                 showcase = icon_teachers,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
@@ -203,6 +206,13 @@ def survey1_server(input, output, session):
             return filtered_surveys1()["QUESTNNR"].str.split("-", expand=True)[1].unique().shape[0]
         except KeyError:
             return 0
+    
+    @render.text
+    def id_teachers1():
+        try:
+            return ", ".join(filtered_surveys1()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
+        except KeyError:
+            return ""
     
     @render.text
     def no_data1():
@@ -293,6 +303,13 @@ def survey2_server(input, output, session):
             return 0
     
     @render.text
+    def id_teachers2():
+        try:
+            return ", ".join(filtered_surveys2()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
+        except KeyError:
+            return ""
+    
+    @render.text
     def no_data2():
         if filtered_surveys2().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
@@ -355,6 +372,13 @@ def survey3_server(input, output, session):
             return filtered_surveys3()["QUESTNNR"].str.split("-", expand=True)[1].unique().shape[0]
         except KeyError:
             return 0
+    
+    @render.text
+    def id_teachers3():
+        try:
+            return ", ".join(filtered_surveys3()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
+        except KeyError:
+            return ""
 
     @render.text
     def no_data3():

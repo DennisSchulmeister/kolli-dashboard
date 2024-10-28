@@ -25,7 +25,7 @@ def infobox_server(input, output, session):
                 Lizenziert unter der BSD 3-Clause Lizenz
 
                 _Das Forschungsprojekt KoLLI (Kooperative Lehr-Lern-Innovation) wird von der Stiftung Innovation
-                in der Hochschullehre gefördert._
+                in der Hochschullehre gefördert. Die Projektlaufzeit ist von April 2024 bis April 2026._
                 """
             ),
             title      = "Forschungsprojekt KoLLI - Evaluationsergebnisse",
