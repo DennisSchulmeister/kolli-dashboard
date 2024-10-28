@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "kolli_dashboard"
+version = "1.0.0"
+description = "Projekt KoLLI: Dashboard"
+authors = ["Dennis Schulmeister-Zimolong <dennis@wpvs.de>"]
+homepage = "https://dashboard.kollaborative-lehre.de"
+repository = "https://github.com/DennisSchulmeister/kolli-dashboard"
+license = "BSD-3-Clause"
+readme = "README.md"
+
+## Nutze Poetry nur für die Installation abhängiger Bibliotheken, weil dieses
+## Projekt nicht auf PyPI veröffentlicht werden soll.
+#package-mode = false
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+server = "scripts:server"
+watch  = "scripts:watch"
+
+[tool.poetry.dependencies]
+# Shiny benötigt mindestens Python 3.8, numpy mindestens 3.10
+python = ">=3.10"
+
+# Workaround: plot-likert verweist auf eine ältere numpy-Version, die PEP517
+# noch nicht unterstützt und sich deshalb unter Python 3.12 nicht mehr installieren
+# lässt: AttributeError: module 'pkgutil' has no attribute 'ImpImporter'. Did you mean: 'zipimporter'?
+# Als Lösung installieren wir daher hier plot-likert explizit selbst.
+numpy = "^2.1.2"
+
+shiny = {extras = ["theme"], version = "^1.1.0"}
+plot-likert = "^0.5.0"
+pandas = "^2.2.3"
+faicons = "^0.2.2"
