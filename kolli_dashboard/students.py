@@ -37,7 +37,6 @@ def survey1_ui():
             sich diese im Lauf des Semesters verändert.
             """,
         ),
-
         ui.layout_column_wrap(
             ui.value_box(
                 title    = "Studierende",
@@ -61,19 +60,19 @@ def survey1_ui():
         ui.output_ui("no_data1"),
         ui.layout_columns(
             ui.h5("Vorwissen und Interesse"),
-            ui.output_plot("plot_vorwissen_likert"),
+            ui.output_plot("plot_vorwissen_likert1"),
             ui.output_data_frame("df_vorwissen1"),
 
             ui.h5("Mitgestaltung"),
-            ui.output_plot("plot_mitgestaltung_likert"),
+            ui.output_plot("plot_mitgestaltung_likert1"),
             ui.div(
                 ui.div(get_label("V203_01"), class_="text-center fw-bold"),
-                ui.output_plot("plot_mitgestaltung_hist"),
+                ui.output_plot("plot_mitgestaltung_hist1"),
             ),
 
             ui.div(
                 ui.h5("Student Engagement"),
-                ui.output_plot("plot_engagement_likert", height="800px"),
+                ui.output_plot("plot_engagement_likert1", height="900px"),
             ),
             ui.div(
                 ui.h5("Sonstige Bemerkungen"),
@@ -86,6 +85,14 @@ def survey1_ui():
 
 def survey2_ui():
     return ui.div(
+        ui.p(
+            """
+            Die studentische Zwischenumfrage findet innerhalb des Semesters statt, nachdem die Studierenden
+            erste Erfahrungen mit dem partizipativen Ansatz gesammelt haben. Sie erhebt die Haltung im
+            Vergleich zum Semesterbeginn, die momentane Zufriedenheit und den Unterstützungsbedarf der
+            Studierenden.
+            """,
+        ),
         ui.layout_column_wrap(
             ui.value_box(
                 title    = "Studierende",
@@ -107,11 +114,30 @@ def survey2_ui():
             ),
         ),
         ui.output_ui("no_data2"),
+        ui.layout_columns(
+            ui.h5("Klarheit und Überforderung"),
+            ui.output_plot("plot_klarheit_likert2"),
+            ui.output_data_frame("df_lehr_lern_innovation2"),
+
+            ui.h5("Zufriedenheit"),
+            ui.output_plot("plot_zufriedenheit_likert2"),
+            ui.output_data_frame("df_unterstuetzung2"),
+
+            col_widths=(12, 8, 4, 12, 8, 4),
+        ),
         class_="my-flex-with-gaps",
     )
 
 def survey3_ui():
     return ui.div(
+        ui.p(
+            """
+            Die studentische Abschlussumfrage findet als sumative Evaluation am Ende des Semesters statt,
+            nachdem die Studierenden die Arbeit an den Lehr-Lern-Innovationen abgeschlossen haben.
+            Sie erhebt, wie die Studienrenden die Partizipation empfunden haben und welche Verbesserungen
+            vorgenommen werden können.
+            """,
+        ),
         ui.layout_column_wrap(
             ui.value_box(
                 title    = "Studierende",
@@ -185,20 +211,20 @@ def survey1_server(input, output, session):
     
     @render.data_frame
     def df_vorwissen1():
-        df = filtered_surveys1()[["V202_01"]].astype(str)
+        df = filtered_surveys1()[["V202_01"]].astype(str).copy()
         df = df[df["V202_01"].apply(lambda x: len(x.strip()) > 3)]
         df = df.rename(columns={"V202_01": get_label("V202_01")})
         return render.DataGrid(df, width="100%", height="400px")
 
     @render.data_frame
     def df_bemerkungen1():
-        df = filtered_surveys1()[["V210_01"]].astype(str)
+        df = filtered_surveys1()[["V210_01"]].astype(str).copy()
         df = df[df["V210_01"].apply(lambda x: len(x.strip()) > 3)]
         df = df.rename(columns={"V210_01": get_label("V210_01")})
         return render.DataGrid(df, width="100%", height="400px")
 
     @render.plot
-    def plot_mitgestaltung_hist():
+    def plot_mitgestaltung_hist1():
         fig, ax = plt.subplots()
         density = False
         df      = filtered_surveys1()["V203_01"].dropna()
@@ -214,15 +240,15 @@ def survey1_server(input, output, session):
         return fig
 
     @render.plot
-    def plot_vorwissen_likert():
+    def plot_vorwissen_likert1():
         return plot_likert_chart(input, filtered_surveys1(), "V201_01", "V201_02")
 
     @render.plot
-    def plot_mitgestaltung_likert():
+    def plot_mitgestaltung_likert1():
         return plot_likert_chart(input, filtered_surveys1(), "V204_01", "V204_02")
 
     @render.plot
-    def plot_engagement_likert():
+    def plot_engagement_likert1():
         return plot_likert_chart(input, filtered_surveys1(),
                                  "VU03_03", "VU03_04",
                                  "V209_01", "V209_02", "V209_03",
@@ -270,6 +296,28 @@ def survey2_server(input, output, session):
     def no_data2():
         if filtered_surveys2().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+    
+    @render.data_frame
+    def df_lehr_lern_innovation2():
+        df = filtered_surveys2()[["ZW06_01"]].astype(str).copy()
+        df = df[df["ZW06_01"].apply(lambda x: len(x.strip()) > 3)]
+        df = df.rename(columns={"ZW06_01": get_label("ZW06_01")})
+        return render.DataGrid(df, width="100%", height="400px")
+    
+    @render.data_frame
+    def df_unterstuetzung2():
+        df = filtered_surveys2()[["ZW05_01"]].astype(str).copy()
+        df = df[df["ZW05_01"].apply(lambda x: len(x.strip()) > 3)]
+        df = df.rename(columns={"ZW05_01": get_label("ZW05_01")})
+        return render.DataGrid(df, width="100%", height="400px")
+    
+    @render.plot
+    def plot_klarheit_likert2():
+        return plot_likert_chart(input, filtered_surveys2(), "ZW04_01", "ZW04_02", "ZW04_03", "ZW04_04")
+    
+    @render.plot
+    def plot_zufriedenheit_likert2():
+        return plot_likert_chart(input, filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08")
 
 def survey3_server(input, output, session):
     @reactive.calc
