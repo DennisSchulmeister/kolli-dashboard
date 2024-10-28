@@ -59,7 +59,7 @@ der in [Shiny](https://shiny.posit.co/py/) enthaltene Webserver mit folgendem Ko
 gestartet werden.
 
 ```sh
-shiny run kolli_dashboard/app.py
+shiny run kolli_dashboard.app:app
 ```
 
 Der Befehl muss ggf. in einer Shell mit aktivierter Python-Umgebung ausgeführt werden. Als
@@ -76,7 +76,7 @@ installiert und ähnlich einfach genutzt werden. Nach der Installation von Daphn
 mit folgendem Befehl gestartet werden:
 
 ```sh
-daphne -p 8000 -b 0.0.0.0 kolli_dashboard:app
+daphne -p 8000 -b 0.0.0.0 kolli_dashboard.app:app
 ```
 
 Die beiden Parameter `-p` und `-b` stehen für die Portnummer und das Netzwerkinterface, an das sich
