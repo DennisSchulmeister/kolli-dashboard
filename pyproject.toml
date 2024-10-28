@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "kolli_dashboard"
 version = "1.0.0"
-description = "Projekt KoLLI: Dashboard"
+description = "Forschungsprojekt KoLLI: Evaluationsergebnisse"
 authors = ["Dennis Schulmeister-Zimolong <dennis@wpvs.de>"]
 homepage = "https://dashboard.kollaborative-lehre.de"
 repository = "https://github.com/DennisSchulmeister/kolli-dashboard"
