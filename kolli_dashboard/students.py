@@ -252,7 +252,8 @@ def survey1_server(input, output, session):
     @render.text
     def count_courses1():
         try:
-            return filtered_surveys1()["STARTED"].dt.date.unique().shape[0]
+            df = filtered_surveys1()
+            return df.groupby(['QUESTNNR', df['STARTED'].dt.date]).ngroups
         except KeyError:
             return 0
     
@@ -351,7 +352,8 @@ def survey2_server(input, output, session):
     @render.text
     def count_courses2():
         try:
-            return filtered_surveys2()["STARTED"].dt.date.unique().shape[0]
+            df = filtered_surveys2()
+            return df.groupby(['QUESTNNR', df['STARTED'].dt.date]).ngroups
         except KeyError:
             return 0
     
@@ -425,7 +427,8 @@ def survey3_server(input, output, session):
     @render.text
     def count_courses3():
         try:
-            return filtered_surveys3()["STARTED"].dt.date.unique().shape[0]
+            df = filtered_surveys3()
+            return df.groupby(['QUESTNNR', df['STARTED'].dt.date]).ngroups
         except KeyError:
             return 0
     
