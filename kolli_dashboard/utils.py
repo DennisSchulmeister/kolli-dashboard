@@ -12,6 +12,11 @@ src_dir = Path(__file__).resolve().parent
 scale_minus_plus = ["--", "-", "±", "+", "++"]
 
 def to_scale_minus_plus(nr):
+    try:
+        nr = int(nr)
+    except ValueError:
+        nr = -1
+
     if nr == 1:
         return "--"
     elif nr == 2:

@@ -458,7 +458,7 @@ def survey_dira2_special_server(input, output, session):
         questnnrs  = []
 
         if "DIRA" in teachers:
-            questnnrs = ["S-DIRA-2-spezial"]
+            questnnrs = ["S-DIRA-2-special"]
 
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
@@ -505,26 +505,23 @@ def survey_dira2_special_server(input, output, session):
     @render.data_frame
     def df_freetext_dira2_special():
         try:
-            df = filtered_surveys_dira2_special()[["DR01", "DR02", "DR03", "DR04", "DR05"]].astype(str).copy()
-            df = df[df[['DR01', 'DR02', 'DR03', 'DR04', 'DR05']].apply(lambda x: x.str.len() >= 3).any(axis=1)]
+            df = filtered_surveys_dira2_special()[["DR01_01", "DR02_01", "DR03_01", "DR04_01", "DR05_01"]].astype(str).copy()
+            df = df[df[["DR01_01", "DR02_01", "DR03_01", "DR04_01", "DR05_01"]].apply(lambda x: x.str.len() >= 3).any(axis=1)]
 
             df = df.rename(
                 columns={
-                    "DR01": get_label("DR01"),
-                    "DR02": get_label("DR02"),
-                    "DR03": get_label("DR03"),
-                    "DR04": get_label("DR04"),
-                    "DR05": get_label("DR05"),
+                    "DR01_01": get_label("DR01_01"),
+                    "DR02_01": get_label("DR02_01"),
+                    "DR03_01": get_label("DR03_01"),
+                    "DR04_01": get_label("DR04_01"),
+                    "DR05_01": get_label("DR05_01"),
                 }
             )
 
-            return render.DataGrid(df, width="100%")
+            return render.DataTable(df, width="100%")
         except KeyError:
                 pass
     
     @render.plot
     def plot_likert_dira2_special():
-        try:
-            return plot_likert_chart(input, filtered_surveys_dira2_special(), "DR06_01", "DR06_02")
-        except KeyError:
-            pass
+        return plot_likert_chart(input, filtered_surveys_dira2_special(), "DR06_01", "DR06_08")

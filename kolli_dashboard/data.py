@@ -46,11 +46,20 @@ def __init__():
 
     # Question DR06_01 from survey S-DIRA-2-spezial can be used for the student mid survey, too
     try:
-        dira2_special = data[(data["QUESTNNR"] == "S-DIRA-2-spezial") & (data["DR06_01"].notnull())].copy()
+        dira2_special = data[(data["QUESTNNR"] == "S-DIRA-2-special") & (data["DR06_01"].notnull())].copy()
         dira2_special["QUESTNNR"] = "S-DIRA-2"
-        data = data.append(dira2_special, ignore_index=True)
+        dira2_special.loc[:,"ZW04_01"] = dira2_special["DR06_01"]
+        dira2_special.drop("DR06_01", axis=1)
+        data = pd.concat([data, dira2_special], ignore_index=True)
     except KeyError:
         pass
+
+    # Convert plus_minus likert questions to strings
+    for label in labels[labels["TYPE"] == "plus_minus"].itertuples():
+        try:
+            data[label.VAR] = data[label.VAR].apply(to_scale_minus_plus)
+        except KeyError:
+            pass
 
     # Return final result
     return {
@@ -72,7 +81,6 @@ def plot_likert_chart(input, data, *vars, width=0.15):
     df = data[[*vars]]
 
     for var in vars:
-        df[var] = df[var].apply(to_scale_minus_plus)
         df = df.rename(columns={var: get_label(var)})
 
     # Bug in plot-likert? Crashes with percentages if there a no answers for one question
