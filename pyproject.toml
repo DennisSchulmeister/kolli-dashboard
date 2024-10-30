@@ -34,3 +34,4 @@ shiny = {extras = ["theme"], version = "^1.1.0"}
 plot-likert = "^0.5.0"
 pandas = "^2.2.3"
 faicons = "^0.2.2"
+python-dotenv = "^1.0.1"

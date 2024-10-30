@@ -5,13 +5,16 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from .data  import data, get_label, plot_likert_chart
-from shiny  import reactive, render, ui
+from .ai_llm import ai_conversation, ai_conversation_available, ai_message
+from .data   import data, get_label, plot_likert_chart
+from shiny   import reactive, render, ui
 
 import faicons
 import pandas            as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+
+ai_button_class = "" if ai_conversation_available() else "d-none"
 
 #==============================================================================
 # All Together
@@ -72,7 +75,14 @@ def survey1_ui():
         ui.layout_columns(
             ui.h5("Vorwissen und Interesse"),
             ui.output_plot("plot_vorwissen_likert1"),
-            ui.output_data_frame("df_vorwissen1"),
+            ui.div(
+                ui.output_data_frame("df_vorwissen1"),
+                ui.input_action_button(
+                    "btn_ai_summary_vorwissen1",
+                    "KI-Zusammenfassung",
+                    class_ = f"mt-4 {ai_button_class}"
+                ),
+            ),
 
             ui.h5("Mitgestaltung"),
             ui.output_plot("plot_mitgestaltung_likert1"),
@@ -87,7 +97,14 @@ def survey1_ui():
             ),
             ui.div(
                 ui.h5("Sonstige Bemerkungen"),
-                ui.output_data_frame("df_bemerkungen1"),
+                ui.div(
+                    ui.output_data_frame("df_bemerkungen1"),
+                    ui.input_action_button(
+                        "btn_ai_summary_bemerkungen1",
+                        "KI-Zusammenfassung",
+                        class_ = f"mt-4 {ai_button_class}"
+                    ),
+                ),
             ),
             col_widths = (12, 8, 4, 12, 8, 4, 8, 4),
         ),
@@ -132,11 +149,25 @@ def survey2_ui():
         ui.layout_columns(
             ui.h5("Klarheit und Überforderung"),
             ui.output_plot("plot_klarheit_likert2"),
-            ui.output_data_frame("df_lehr_lern_innovation2"),
+            ui.div(
+                ui.output_data_frame("df_lehr_lern_innovation2"),
+                ui.input_action_button(
+                    "btn_ai_summary_lehr_lern_innovation2",
+                    "KI-Zusammenfassung",
+                    class_=f"mt-4 {ai_button_class}"
+                ),
+            ),
 
             ui.h5("Zufriedenheit"),
             ui.output_plot("plot_zufriedenheit_likert2"),
-            ui.output_data_frame("df_unterstuetzung2"),
+            ui.div(
+                ui.output_data_frame("df_unterstuetzung2"),
+                ui.input_action_button(
+                    "btn_ai_summary_unterstuetzung2",
+                    "KI-Zusammenfassung",
+                    class_=f"mt-4 {ai_button_class}"
+                ),
+            ),
 
             col_widths=(12, 8, 4, 12, 8, 4),
         ),
@@ -210,6 +241,13 @@ def survey_dira2_special_ui():
         ),
         ui.output_ui("no_data_dira2_special"),
         ui.output_plot("plot_likert_dira2_special"),
+        ui.div(
+            ui.input_action_button(
+                "btn_ai_summary_dira2_special",
+                "KI-Zusammenfassung",
+                class_ = f"{ai_button_class}"
+            ),
+        ),
         ui.output_data_frame("df_freetext_dira2_special"),
         class_="my-flex-with-gaps",
     )
@@ -323,6 +361,72 @@ def survey1_server(input, output, session):
                                  "V209_07", "V209_08", "V209_09",
                                  width = 0.4)
 
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_vorwissen1)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Bitte warten, bis die Antwort erscheint.",
+                class_="mb-4",
+            ),
+            ui.h6(get_label("V202_01")),
+            ui.output_ui("ai_summary_vorwissen1"),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+
+    @render.ui
+    def ai_summary_vorwissen1():
+        df      = filtered_surveys1()
+        var     = "V202_01"
+        label   = get_label(var)
+        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ui.markdown(
+            ai_conversation(ai_message(question))
+        )
+    
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_bemerkungen1)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Bitte warten, bis die Antwort erscheint.",
+                class_="mb-4",
+            ),
+            ui.h6(get_label("V210_01")),
+            ui.output_ui("ai_summary_bemerkungen1"),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+
+    @render.ui
+    def ai_summary_bemerkungen1():
+        df      = filtered_surveys1()
+        var     = "V210_01"
+        label   = get_label(var)
+        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ui.markdown(
+            ai_conversation(ai_message(question))
+        )
+    
 #==============================================================================
 # Semester Mid Survey
 #==============================================================================
@@ -397,6 +501,72 @@ def survey2_server(input, output, session):
     @render.plot
     def plot_zufriedenheit_likert2():
         return plot_likert_chart(input, filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08", width=0.4)
+
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_lehr_lern_innovation2)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Bitte warten, bis die Antwort erscheint.",
+                class_="mb-4",
+            ),
+            ui.h6(get_label("ZW06_01")),
+            ui.output_ui("ai_summary_lehr_lern_innovation2"),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+
+    @render.ui
+    def ai_summary_lehr_lern_innovation2():
+        df      = filtered_surveys2()
+        var     = "ZW06_01"
+        label   = get_label(var)
+        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ui.markdown(
+            ai_conversation(ai_message(question))
+        )
+
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_unterstuetzung2)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Bitte warten, bis die Antwort erscheint.",
+                class_="mb-4",
+            ),
+            ui.h6(get_label("ZW05_01")),
+            ui.output_ui("ai_summary_unterstuetzung2"),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+
+    @render.ui
+    def ai_summary_unterstuetzung2():
+        df      = filtered_surveys2()
+        var     = "ZW05_01"
+        label   = get_label(var)
+        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ui.markdown(
+            ai_conversation(ai_message(question))
+        )
 
 #==============================================================================
 # Semester End Survey
@@ -528,3 +698,88 @@ def survey_dira2_special_server(input, output, session):
     @render.plot
     def plot_likert_dira2_special():
         return plot_likert_chart(input, filtered_surveys_dira2_special(), "DR06_01", "DR06_08")
+    
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_dira2_special)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint. " \
+                "Die KI ist nicht so schnell im Lesen ...",
+                class_="mb-4",
+            ),
+            ui.navset_pill(
+                ui.nav_panel("Frage 1",
+                    ui.div(
+                        ui.h6(get_label("DR01_01")),
+                        ui.output_ui("ai_summary_q1_dira2_special"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Frage 2",
+                    ui.div(
+                        ui.h6(get_label("DR02_01")),
+                        ui.output_ui("ai_summary_q2_dira2_special"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Frage 3",
+                    ui.div(
+                        ui.h6(get_label("DR03_01")),
+                        ui.output_ui("ai_summary_q3_dira2_special"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Frage 4",
+                    ui.div(
+                        ui.h6(get_label("DR04_01")),
+                        ui.output_ui("ai_summary_q4_dira2_special"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Frage 5",
+                    ui.div(
+                        ui.h6(get_label("DR05_01")),
+                        ui.output_ui("ai_summary_q5_dira2_special"),
+                        class_="mt-4",
+                    ),
+                ),
+            ),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+    
+    def ai_summary_dira2_special(var):
+        df = filtered_surveys_dira2_special()
+        label = get_label(var)
+        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ai_conversation(ai_message(question))
+
+    @render.ui
+    def ai_summary_q1_dira2_special():
+        return ui.markdown(ai_summary_dira2_special("DR01_01"))
+    
+    @render.ui
+    def ai_summary_q2_dira2_special():
+        return ui.markdown(ai_summary_dira2_special("DR02_01"))
+    
+    @render.ui
+    def ai_summary_q3_dira2_special():
+        return ui.markdown(ai_summary_dira2_special("DR03_01"))
+    
+    @render.ui
+    def ai_summary_q4_dira2_special():
+        return ui.markdown(ai_summary_dira2_special("DR04_01"))
+    
+    @render.ui
+    def ai_summary_q5_dira2_special():
+        return ui.markdown(ai_summary_dira2_special("DR05_01"))

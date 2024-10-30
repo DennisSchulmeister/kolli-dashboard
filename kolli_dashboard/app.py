@@ -5,6 +5,9 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from .infobox  import infobox_ui, infobox_server
 from .sidebar  import sidebar_ui, sidebar_server
 from .students import students_ui, students_server
