@@ -13,6 +13,9 @@ import pandas            as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
+#==============================================================================
+# All Together
+#==============================================================================
 icon_students = faicons.icon_svg("graduation-cap", width="50px")
 icon_courses  = faicons.icon_svg("users", width="50px")
 icon_teachers = faicons.icon_svg("chalkboard-user", width="50px")
@@ -24,9 +27,16 @@ def students_ui():
             ui.nav_panel("Vorumfrage", ui.div(survey1_ui(), class_="mt-4")),
             ui.nav_panel("Zwischenumfrage", ui.div(survey2_ui(), class_="mt-4")),
             ui.nav_panel("Abschlussumfrage", ui.div(survey3_ui(), class_="mt-4")),
+            ui.nav_menu(
+                "Spezifische Umfragen",
+                ui.nav_panel("DIRA Lerntagebücher", ui.div(survey_dira2_special_ui(), class_="mt-4")),
+            ),
         ),
     ]
 
+#==============================================================================
+# Semester Start Survey
+#==============================================================================
 def survey1_ui():
     return ui.div(
         ui.p(
@@ -84,6 +94,9 @@ def survey1_ui():
         class_="my-flex-with-gaps",
     )
 
+#==============================================================================
+# Semester Mid Survey
+#==============================================================================
 def survey2_ui():
     return ui.div(
         ui.p(
@@ -130,6 +143,9 @@ def survey2_ui():
         class_="my-flex-with-gaps",
     )
 
+#==============================================================================
+# Semester End Survey
+#==============================================================================
 def survey3_ui():
     return ui.div(
         ui.p(
@@ -165,11 +181,51 @@ def survey3_ui():
         class_="my-flex-with-gaps",
     )
 
+#==============================================================================
+# DIRA2 Learning Diaries
+#==============================================================================
+def survey_dira2_special_ui():
+    return ui.div(
+        ui.h4("DIRA Lerntagebücher / Zwischenumfrage", class_="my-survey-title"),
+        ui.layout_column_wrap(
+            ui.value_box(
+                "Studierende",
+                ui.output_ui("count_students_dira2_special"),
+                showcase = icon_students,
+                theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
+            ),
+            ui.value_box(
+                "Kurse",
+                ui.output_ui("count_courses_dira2_special"),
+                showcase = icon_courses,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
+            ),
+            ui.value_box(
+                "Lehrende",
+                ui.output_ui("count_teachers_dira2_special"),
+                ui.output_ui("id_teachers_dira2_special"),
+                showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
+        ),
+        ui.output_ui("no_data_dira2_special"),
+        ui.output_plot("plot_likert_dira2_special"),
+        ui.output_data_frame("df_freetext_dira2_special"),
+        class_="my-flex-with-gaps",
+    )
+
+#==============================================================================
+# All Together
+#==============================================================================
 def students_server(input, output, session):
     survey1_server(input, output, session)
     survey2_server(input, output, session)
     survey3_server(input, output, session)
+    survey_dira2_special_server(input, output, session)
 
+#==============================================================================
+# Semester Start Survey
+#==============================================================================
 def survey1_server(input, output, session):
     @reactive.calc
     def filtered_surveys1():
@@ -266,6 +322,9 @@ def survey1_server(input, output, session):
                                  "V209_07", "V209_08", "V209_09",
                                  width = 0.4)
 
+#==============================================================================
+# Semester Mid Survey
+#==============================================================================
 def survey2_server(input, output, session):
     @reactive.calc
     def filtered_surveys2():
@@ -337,6 +396,9 @@ def survey2_server(input, output, session):
     def plot_zufriedenheit_likert2():
         return plot_likert_chart(input, filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08", width=0.4)
 
+#==============================================================================
+# Semester End Survey
+#==============================================================================
 def survey3_server(input, output, session):
     @reactive.calc
     def filtered_surveys3():
@@ -385,3 +447,84 @@ def survey3_server(input, output, session):
     def no_data3():
         if filtered_surveys3().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+
+#==============================================================================
+# DIRA2 Learning Diaries
+#==============================================================================
+def survey_dira2_special_server(input, output, session):
+    @reactive.calc
+    def filtered_surveys_dira2_special():
+        teachers   = input.teachers() or data["teachers"]
+        questnnrs  = []
+
+        if "DIRA" in teachers:
+            questnnrs = ["S-DIRA-2-spezial"]
+
+        start_date = pd.to_datetime(input.date_range()[0])
+        end_date   = pd.to_datetime(input.date_range()[1])
+
+        return data["answers"][
+            (data["answers"]["QUESTNNR"].isin(questnnrs)) &
+            (data["answers"]["STARTED"] >= start_date) &
+            (data["answers"]["STARTED"] <= end_date)
+        ]
+
+    @render.text
+    def count_students_dira2_special():
+        try:
+            return filtered_surveys_dira2_special().shape[0]
+        except KeyError:
+            return 0
+
+    @render.text
+    def count_courses_dira2_special():
+        try:
+            return filtered_surveys_dira2_special()["STARTED"].dt.date.unique().shape[0]
+        except KeyError:
+            return 0
+    
+    @render.text
+    def count_teachers_dira2_special():
+        try:
+            return filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[1].unique().shape[0]
+        except KeyError:
+            return 0
+    
+    @render.text
+    def id_teachers_dira2_special():
+        try:
+            return ", ".join(filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
+        except KeyError:
+            return ""
+    
+    @render.text
+    def no_data_dira2_special():
+        if filtered_surveys_dira2_special().shape[0] == 0:
+            return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+    
+    @render.data_frame
+    def df_freetext_dira2_special():
+        try:
+            df = filtered_surveys_dira2_special()[["DR01", "DR02", "DR03", "DR04", "DR05"]].astype(str).copy()
+            df = df[df[['DR01', 'DR02', 'DR03', 'DR04', 'DR05']].apply(lambda x: x.str.len() >= 3).any(axis=1)]
+
+            df = df.rename(
+                columns={
+                    "DR01": get_label("DR01"),
+                    "DR02": get_label("DR02"),
+                    "DR03": get_label("DR03"),
+                    "DR04": get_label("DR04"),
+                    "DR05": get_label("DR05"),
+                }
+            )
+
+            return render.DataGrid(df, width="100%")
+        except KeyError:
+                pass
+    
+    @render.plot
+    def plot_likert_dira2_special():
+        try:
+            return plot_likert_chart(input, filtered_surveys_dira2_special(), "DR06_01", "DR06_02")
+        except KeyError:
+            pass

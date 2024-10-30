@@ -44,6 +44,14 @@ def __init__():
 
     data.drop(["VU01_01", "VU02_01", "VU03_01", "VU03_02"], axis=1, inplace=True)
 
+    # Question DR06_01 from survey S-DIRA-2-spezial can be used for the student mid survey, too
+    try:
+        dira2_special = data[(data["QUESTNNR"] == "S-DIRA-2-spezial") & (data["DR06_01"].notnull())].copy()
+        dira2_special["QUESTNNR"] = "S-DIRA-2"
+        data = data.append(dira2_special, ignore_index=True)
+    except KeyError:
+        pass
+
     # Return final result
     return {
         "answers":  data,
@@ -53,7 +61,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.0.0"
+version = "1.1.0"
 
 def get_label(var):
     return data["labels"].loc[data["labels"]["VAR"] == var, "LABEL"].values[0]
