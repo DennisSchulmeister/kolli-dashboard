@@ -28,8 +28,17 @@ Wichtige Kommandos
 
 ### Kurzversion
 
+ * `poetry install`: Installation aller Bibliotheken
  * `poetry run server`: Starten des Webservers ohne Hot-Reloading
  * `poetry run watch`: Starten des Webservers mit Hot-Reloading
+
+**ACHTUNG:** Unter Linux sollte man folgende Umgebungsvariable setzen, um die Verwendung
+des Key Rings zu unterbinden. Auf Serversystemen kommt es sonst zu DBUS-Fehlern.
+Vgl. https://stackoverflow.com/a/75098703
+
+```sh
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+```
 
 ### Langversion
 
