@@ -6,6 +6,8 @@
 # LICENSE file in the root directory of this source tree.
 
 from .utils import src_dir, scale_minus_plus, to_scale_minus_plus
+from shiny  import reactive
+
 import pandas as pd
 import plot_likert
 
@@ -71,6 +73,43 @@ def __init__():
 
 data    = __init__()
 version = "1.2.0"
+
+# Reactive values for correlation filters
+correlation_filters = {
+    "student1": {
+        "V201_01": reactive.value(()),
+        "V201_02": reactive.value(()),
+        "V204_01": reactive.value(()),
+        "V204_02": reactive.value(()),
+        "V203_01": reactive.value([0, 11]),
+        "VU03_03": reactive.value(()),
+        "VU03_04": reactive.value(()),
+        "V209_01": reactive.value(()),
+        "V209_02": reactive.value(()),
+        "V209_03": reactive.value(()),
+        "V209_04": reactive.value(()),
+        "V209_05": reactive.value(()),
+        "V209_06": reactive.value(()),
+        "V209_07": reactive.value(()),
+        "V209_08": reactive.value(()),
+        "V209_09": reactive.value(()),
+    },
+    "student2": {
+        "ZW04_01": reactive.value(()),
+        "ZW04_02": reactive.value(()),
+        "ZW04_03": reactive.value(()),
+        "ZW04_04": reactive.value(()),
+        "ZW04_05": reactive.value(()),
+        "ZW04_06": reactive.value(()),
+        "ZW04_07": reactive.value(()),
+        "ZW04_08": reactive.value(()),
+    },
+    "student3": {},
+    "student-DIRA2_special": {
+        "DR06_01": reactive.value(()),
+        "DR06_08": reactive.value(()),
+    },
+}
 
 def get_label(var):
     return data["labels"].loc[data["labels"]["VAR"] == var, "LABEL"].values[0]

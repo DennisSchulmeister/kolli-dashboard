@@ -6,13 +6,14 @@
 # LICENSE file in the root directory of this source tree.
 
 from .ai_llm import ai_conversation, ai_conversation_available, ai_message
-from .data   import data, get_label, plot_likert_chart
+from .data   import correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
 import faicons
 import pandas            as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import numpy             as np
 
 #==============================================================================
 # UI Definition
@@ -279,14 +280,26 @@ def survey1_server(input, output, session):
         questnnrs1 = [f"S-{teacher}-1" for teacher in teachers]
         questnnrs2 = [f"S-{teacher}-1-alt" for teacher in teachers]
 
-        start_date = pd.to_datetime(input.date_range()[0])
-        end_date   = pd.to_datetime(input.date_range()[1])
+        start_date  = pd.to_datetime(input.date_range()[0])
+        end_date    = pd.to_datetime(input.date_range()[1])
 
-        return data["answers"][
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)) &
-            (data["answers"]["STARTED"] >= start_date) &
-            (data["answers"]["STARTED"] <= end_date)
+        conditions = [
+            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["STARTED"] >= start_date),
+            (data["answers"]["STARTED"] <= end_date),
         ]
+
+        for var in correlation_filters["student1"]:
+            selected = correlation_filters["student1"][var].get()
+            
+            if selected:
+                if var == "V203_01":
+                    conditions.append(data["answers"][var] >= selected[0])
+                    conditions.append(data["answers"][var] <= selected[1])
+                else:
+                    conditions.append(data["answers"][var].isin(selected))
+
+        return data["answers"][np.logical_and.reduce(conditions)]
 
     @render.text
     def count_students1():
@@ -448,11 +461,19 @@ def survey2_server(input, output, session):
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
-        return data["answers"][
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)) &
-            (data["answers"]["STARTED"] >= start_date) &
-            (data["answers"]["STARTED"] <= end_date)
+        conditions = [
+            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["STARTED"] >= start_date),
+            (data["answers"]["STARTED"] <= end_date),
         ]
+
+        for var in correlation_filters["student2"]:
+            selected = correlation_filters["student2"][var].get()
+            
+            if selected:
+                    conditions.append(data["answers"][var].isin(selected))
+
+        return data["answers"][np.logical_and.reduce(conditions)]
 
     @render.text
     def count_students2():
@@ -589,11 +610,19 @@ def survey3_server(input, output, session):
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
-        return data["answers"][
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)) &
-            (data["answers"]["STARTED"] >= start_date) &
-            (data["answers"]["STARTED"] <= end_date)
+        conditions = [
+            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["STARTED"] >= start_date),
+            (data["answers"]["STARTED"] <= end_date),
         ]
+
+        for var in correlation_filters["student3"]:
+            selected = correlation_filters["student3"][var].get()
+            
+            if selected:
+                    conditions.append(data["answers"][var].isin(selected))
+
+        return data["answers"][np.logical_and.reduce(conditions)]
     
     @render.text
     def count_students3():
@@ -644,11 +673,19 @@ def survey_dira2_special_server(input, output, session):
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
-        return data["answers"][
-            (data["answers"]["QUESTNNR"].isin(questnnrs)) &
-            (data["answers"]["STARTED"] >= start_date) &
-            (data["answers"]["STARTED"] <= end_date)
+        conditions = [
+            (data["answers"]["QUESTNNR"].isin(questnnrs)),
+            (data["answers"]["STARTED"] >= start_date),
+            (data["answers"]["STARTED"] <= end_date),
         ]
+
+        for var in correlation_filters["student-DIRA2_special"]:
+            selected = correlation_filters["student-DIRA2_special"][var].get()
+            
+            if selected:
+                    conditions.append(data["answers"][var].isin(selected))
+
+        return data["answers"][np.logical_and.reduce(conditions)]
 
     @render.text
     def count_students_dira2_special():

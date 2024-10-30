@@ -5,7 +5,7 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from .data  import data, get_label, version
+from .data  import correlation_filters, data, get_label, version
 from .utils import scale_minus_plus
 from shiny  import ui, reactive
 
@@ -57,36 +57,31 @@ def sidebar_ui():
     )
 
 all_correlation_plus_minus_selectize = []
-correlation_filters = {}
 
-def ui_correlation_plus_minus(input, var):
+def ui_correlation_plus_minus(input, var, survey):
     name = f"correlation_{var}"
-    all_correlation_plus_minus_selectize.append(name)
 
-    if not var in correlation_filters:
-        value = reactive.value([])
-        correlation_filters[var] = value
-
+    if not name in all_correlation_plus_minus_selectize:
         @reactive.effect
         @reactive.event(input[name])
         def _():
-            value.set([*input[name]()])
-    else:
-        value = correlation_filters[var]
+            correlation_filters[survey][var].set([*input[name]()])
+    
+    all_correlation_plus_minus_selectize.append(name)
 
     return ui.input_selectize(
         name,
         get_label(var),
         multiple = True,
         choices  = scale_minus_plus,
-        selected = value.get(),
+        selected = correlation_filters[survey][var](),
         width    = "100%"
     ),
 
 def sidebar_server(input, output, session):
     @reactive.effect
     @reactive.event(input.btn_correlation_filter)
-    def _():
+    def _():    
         m = ui.modal(
             ui.panel_well(
                 """
@@ -104,36 +99,36 @@ def sidebar_server(input, output, session):
                         ui.navset_card_tab(
                             ui.nav_panel(
                                 "Vorwissen und Interesse",
-                                ui_correlation_plus_minus(input, "V201_01"),
-                                ui_correlation_plus_minus(input, "V201_02"),
+                                ui_correlation_plus_minus(input, "V201_01", "student1"),
+                                ui_correlation_plus_minus(input, "V201_02", "student1"),
                             ),
                             ui.nav_panel(
                                 "Mitgestaltung",
-                                ui_correlation_plus_minus(input, "V204_01"),
-                                ui_correlation_plus_minus(input, "V204_02"),
+                                ui_correlation_plus_minus(input, "V204_01", "student1"),
+                                ui_correlation_plus_minus(input, "V204_02", "student1"),
                                 ui.input_slider(
                                     "correlation_V203_01",
                                     get_label("V203_01"),
                                     min   = 0,
                                     max   = 11,
-                                    value = correlation_filters["V203_01"].get() if "V203_01" in correlation_filters else [0, 11],
+                                    value = correlation_filters["student1"]["V203_01"].get(),
                                     ticks = True,
                                     width = "100%",
                                 ),
                             ),
                             ui.nav_panel(
                                 "Student Engagement",
-                                ui_correlation_plus_minus(input, "VU03_03"),
-                                ui_correlation_plus_minus(input, "VU03_04"),
-                                ui_correlation_plus_minus(input, "V209_01"),
-                                ui_correlation_plus_minus(input, "V209_02"),
-                                ui_correlation_plus_minus(input, "V209_03"),
-                                ui_correlation_plus_minus(input, "V209_04"),
-                                ui_correlation_plus_minus(input, "V209_05"),
-                                ui_correlation_plus_minus(input, "V209_06"),
-                                ui_correlation_plus_minus(input, "V209_07"),
-                                ui_correlation_plus_minus(input, "V209_08"),
-                                ui_correlation_plus_minus(input, "V209_09"),
+                                ui_correlation_plus_minus(input, "VU03_03", "student1"),
+                                ui_correlation_plus_minus(input, "VU03_04", "student1"),
+                                ui_correlation_plus_minus(input, "V209_01", "student1"),
+                                ui_correlation_plus_minus(input, "V209_02", "student1"),
+                                ui_correlation_plus_minus(input, "V209_03", "student1"),
+                                ui_correlation_plus_minus(input, "V209_04", "student1"),
+                                ui_correlation_plus_minus(input, "V209_05", "student1"),
+                                ui_correlation_plus_minus(input, "V209_06", "student1"),
+                                ui_correlation_plus_minus(input, "V209_07", "student1"),
+                                ui_correlation_plus_minus(input, "V209_08", "student1"),
+                                ui_correlation_plus_minus(input, "V209_09", "student1"),
                             ),
                         ),
                         class_="mt-4",
@@ -145,17 +140,17 @@ def sidebar_server(input, output, session):
                         ui.navset_card_tab(
                             ui.nav_panel(
                                 "Klarheit und Überforderung",
-                                ui_correlation_plus_minus(input, "ZW04_01"),
-                                ui_correlation_plus_minus(input, "ZW04_02"),
-                                ui_correlation_plus_minus(input, "ZW04_03"),
-                                ui_correlation_plus_minus(input, "ZW04_04"),
+                                ui_correlation_plus_minus(input, "ZW04_01", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_02", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_03", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_04", "student2"),
                             ),
                             ui.nav_panel(
                                 "Zufriedenheit",
-                                ui_correlation_plus_minus(input, "ZW04_05"),
-                                ui_correlation_plus_minus(input, "ZW04_06"),
-                                ui_correlation_plus_minus(input, "ZW04_07"),
-                                ui_correlation_plus_minus(input, "ZW04_08"),
+                                ui_correlation_plus_minus(input, "ZW04_05", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_06", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_07", "student2"),
+                                ui_correlation_plus_minus(input, "ZW04_08", "student2"),
                             ),
                         ),
                         class_="mt-4",
@@ -167,17 +162,17 @@ def sidebar_server(input, output, session):
                 #         ui.navset_card_tab(
                 #             ui.nav_panel(
                 #                 "Klarheit und Überforderung",
-                #                 ui_correlation_plus_minus(input, "ZW04_01"),
-                #                 ui_correlation_plus_minus(input, "ZW04_02"),
-                #                 ui_correlation_plus_minus(input, "ZW04_03"),
-                #                 ui_correlation_plus_minus(input, "ZW04_04"),
+                #                 ui_correlation_plus_minus(input, "ZW04_01", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_02", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_03", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_04", "student3"),
                 #             ),
                 #             ui.nav_panel(
                 #                 "Zufriedenheit",
-                #                 ui_correlation_plus_minus(input, "ZW04_05"),
-                #                 ui_correlation_plus_minus(input, "ZW04_06"),
-                #                 ui_correlation_plus_minus(input, "ZW04_07"),
-                #                 ui_correlation_plus_minus(input, "ZW04_08"),
+                #                 ui_correlation_plus_minus(input, "ZW04_05", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_06", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_07", "student3"),
+                #                 ui_correlation_plus_minus(input, "ZW04_08", "student3"),
                 #             ),
                 #         ),
                 #         class_="mt-4",
@@ -189,8 +184,8 @@ def sidebar_server(input, output, session):
                         "DIRA Lerntagebücher",
                         ui.div(
                             ui.h4("DIRA Lerntagebücher / Zwischenumfrage", class_="my-survey-title mb-4"),
-                            ui_correlation_plus_minus(input, "DR06_01"),
-                            ui_correlation_plus_minus(input, "DR06_08"),
+                            ui_correlation_plus_minus(input, "DR06_01", "student-DIRA2_special"),
+                            ui_correlation_plus_minus(input, "DR06_08", "student-DIRA2_special"),
                             class_="mt-4",
                         ),
                     ),
@@ -207,10 +202,7 @@ def sidebar_server(input, output, session):
     @reactive.effect
     @reactive.event(input.correlation_V203_01)
     def _():
-        if not "V203_01" in correlation_filters:
-            correlation_filters["V203_01"] = reactive.value()
-            
-        correlation_filters["V203_01"].set(input.correlation_V203_01())
+        correlation_filters["student1"]["V203_01"].set(input.correlation_V203_01())
 
     @reactive.effect
     @reactive.event(input.btn_reset_correlation_filter)
