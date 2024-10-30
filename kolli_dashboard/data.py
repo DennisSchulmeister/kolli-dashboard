@@ -70,7 +70,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.1.0"
+version = "1.2.0"
 
 def get_label(var):
     return data["labels"].loc[data["labels"]["VAR"] == var, "LABEL"].values[0]
