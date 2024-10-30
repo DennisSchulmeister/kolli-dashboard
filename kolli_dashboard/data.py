@@ -42,6 +42,7 @@ def __init__():
     data.loc[data["VU01_01"].notnull(), "V202_01"] = data["VU01_01"]
     data.loc[data["VU03_02"].notnull(), "V201_02"] = data["VU03_02"]
 
+    data["V203_01"].fillna(0, inplace=True)
     data["V210_01"] = data.apply(lambda row: "Erwartungen: " + str(row["VU02_01"]) if pd.notnull(row["VU02_01"]) else row["V210_01"], axis=1)
 
     data.drop(["VU01_01", "VU02_01", "VU03_01", "VU03_02"], axis=1, inplace=True)
@@ -77,37 +78,37 @@ version = "1.2.0"
 # Reactive values for correlation filters
 correlation_filters = {
     "student1": {
-        "V201_01": reactive.value(()),
-        "V201_02": reactive.value(()),
-        "V204_01": reactive.value(()),
-        "V204_02": reactive.value(()),
+        "V201_01": reactive.value([]),
+        "V201_02": reactive.value([]),
+        "V204_01": reactive.value([]),
+        "V204_02": reactive.value([]),
         "V203_01": reactive.value([0, 11]),
-        "VU03_03": reactive.value(()),
-        "VU03_04": reactive.value(()),
-        "V209_01": reactive.value(()),
-        "V209_02": reactive.value(()),
-        "V209_03": reactive.value(()),
-        "V209_04": reactive.value(()),
-        "V209_05": reactive.value(()),
-        "V209_06": reactive.value(()),
-        "V209_07": reactive.value(()),
-        "V209_08": reactive.value(()),
-        "V209_09": reactive.value(()),
+        "VU03_03": reactive.value([]),
+        "VU03_04": reactive.value([]),
+        "V209_01": reactive.value([]),
+        "V209_02": reactive.value([]),
+        "V209_03": reactive.value([]),
+        "V209_04": reactive.value([]),
+        "V209_05": reactive.value([]),
+        "V209_06": reactive.value([]),
+        "V209_07": reactive.value([]),
+        "V209_08": reactive.value([]),
+        "V209_09": reactive.value([]),
     },
     "student2": {
-        "ZW04_01": reactive.value(()),
-        "ZW04_02": reactive.value(()),
-        "ZW04_03": reactive.value(()),
-        "ZW04_04": reactive.value(()),
-        "ZW04_05": reactive.value(()),
-        "ZW04_06": reactive.value(()),
-        "ZW04_07": reactive.value(()),
-        "ZW04_08": reactive.value(()),
+        "ZW04_01": reactive.value([]),
+        "ZW04_02": reactive.value([]),
+        "ZW04_03": reactive.value([]),
+        "ZW04_04": reactive.value([]),
+        "ZW04_05": reactive.value([]),
+        "ZW04_06": reactive.value([]),
+        "ZW04_07": reactive.value([]),
+        "ZW04_08": reactive.value([]),
     },
     "student3": {},
     "student-DIRA2_special": {
-        "DR06_01": reactive.value(()),
-        "DR06_08": reactive.value(()),
+        "DR06_01": reactive.value([]),
+        "DR06_08": reactive.value([]),
     },
 }
 
