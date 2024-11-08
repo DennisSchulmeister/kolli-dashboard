@@ -42,7 +42,7 @@ def __init__():
     data.loc[data["VU01_01"].notnull(), "V202_01"] = data["VU01_01"]
     data.loc[data["VU03_02"].notnull(), "V201_02"] = data["VU03_02"]
 
-    data["V203_01"].fillna(0, inplace=True)
+    data["V203_01"] = data["V203_01"].fillna(0)
     data["V210_01"] = data.apply(lambda row: "Erwartungen: " + str(row["VU02_01"]) if pd.notnull(row["VU02_01"]) else row["V210_01"], axis=1)
 
     data.drop(["VU01_01", "VU02_01", "VU03_01", "VU03_02"], axis=1, inplace=True)

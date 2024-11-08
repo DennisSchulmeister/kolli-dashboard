@@ -405,7 +405,7 @@ def survey1_server(input, output, session):
         df      = filtered_surveys1()
         var     = "V202_01"
         label   = get_label(var)
-        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
@@ -438,7 +438,7 @@ def survey1_server(input, output, session):
         df      = filtered_surveys1()
         var     = "V210_01"
         label   = get_label(var)
-        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
@@ -554,7 +554,7 @@ def survey2_server(input, output, session):
         df      = filtered_surveys2()
         var     = "ZW06_01"
         label   = get_label(var)
-        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
@@ -587,7 +587,7 @@ def survey2_server(input, output, session):
         df      = filtered_surveys2()
         var     = "ZW05_01"
         label   = get_label(var)
-        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
@@ -801,7 +801,7 @@ def survey_dira2_special_server(input, output, session):
     def ai_summary_dira2_special(var):
         df = filtered_surveys_dira2_special()
         label = get_label(var)
-        answers = " - " + "\n - ".join(df[var].astype(str).unique().tolist())
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
