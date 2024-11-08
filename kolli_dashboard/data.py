@@ -73,7 +73,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.2.0"
+version = "1.3.0"
 
 # Reactive values for correlation filters
 correlation_filters = {
@@ -105,7 +105,32 @@ correlation_filters = {
         "ZW04_07": reactive.value([]),
         "ZW04_08": reactive.value([]),
     },
-    "student3": {},
+    "student3": {
+        "AB03_01": reactive.value([]),
+        "AB03_02": reactive.value([]),
+        "AB03_03": reactive.value([]),
+        "AB03_04": reactive.value([]),
+        "AB07_01": reactive.value([]),
+        "AB07_02": reactive.value([]),
+        "AB07_03": reactive.value([]),
+        "AB07_04": reactive.value([]),
+        "AB07_05": reactive.value([]),
+        "AB07_06": reactive.value([]),
+        "AB07_07": reactive.value([]),
+        "AB07_08": reactive.value([]),
+        "AB07_09": reactive.value([]),
+        "AB09_01": reactive.value([]),
+        "AB09_02": reactive.value([]),
+        "AB09_03": reactive.value([]),
+        "AB09_04": reactive.value([]),
+        "AB09_05": reactive.value([]),
+        "AB09_06": reactive.value([]),
+        "AB09_07": reactive.value([]),
+        "AB14_06": reactive.value([]),
+        "AB14_07": reactive.value([]),
+        "AB14_08": reactive.value([]),
+        "AB14_09": reactive.value([]),
+    },
     "student-DIRA2_special": {
         "DR06_01": reactive.value([]),
         "DR06_08": reactive.value([]),

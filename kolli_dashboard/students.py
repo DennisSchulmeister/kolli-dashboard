@@ -97,7 +97,7 @@ def survey1_ui():
             ),
 
             ui.div(
-                ui.h5("Student Engagement"),
+                ui.h5("Studentisches Engagement"),
                 ui.output_plot("plot_engagement_likert1", height="900px"),
             ),
             ui.div(
@@ -214,6 +214,41 @@ def survey3_ui():
             ),
         ),
         ui.output_ui("no_data3"),
+
+        ui.div(
+            ui.h5("Inhalt der Lehrveranstaltung"),
+            ui.output_plot("plot_lv_inhalt_likert3", height="400px"),
+        ),
+
+        ui.div(
+            ui.h5("Studentisches Engagement"),
+            ui.output_plot("plot_engagement_likert3", height="900px"),
+        ),
+
+        ui.div(
+            ui.h5("Beurteilung der Partizipation"),
+            ui.output_plot("plot_beurteilung_likert3", height="700px"),
+        ),
+
+        ui.div(
+            ui.h5("Lernwirksamkeit der Partizipation"),
+            ui.output_plot("plot_lernwirksamkeit_likert3", height="400px"),
+        ),
+
+        ui.div(
+            ui.h5("Freitextantworten"),
+            ui.div(
+                ui.div(
+                    ui.input_action_button(
+                        "btn_ai_summary_freetext3",
+                        "KI-Zusammenfassung",
+                        class_ = f"{ai_button_class}",
+                    ),
+                ),
+                ui.output_data_frame("df_freetext3"),
+                class_="my-flex-with-gaps",
+            ),
+        ),
         class_="my-flex-with-gaps",
     )
 
@@ -250,7 +285,7 @@ def survey_dira2_special_ui():
             ui.input_action_button(
                 "btn_ai_summary_dira2_special",
                 "KI-Zusammenfassung",
-                class_ = f"{ai_button_class}"
+                class_ = f"{ai_button_class}",
             ),
         ),
         ui.output_data_frame("df_freetext_dira2_special"),
@@ -657,7 +692,125 @@ def survey3_server(input, output, session):
     def no_data3():
         if filtered_surveys3().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+    
+    @render.plot
+    def plot_lv_inhalt_likert3():
+        return plot_likert_chart(input, filtered_surveys3(),
+                                 "AB03_01", "AB03_02", "AB03_03", "AB03_04",
+                                 width = 0.4)
+    
+    @render.plot
+    def plot_engagement_likert3():
+        return plot_likert_chart(input, filtered_surveys3(),
+                                 "AB07_01", "AB07_02", "AB07_03", "AB07_04",
+                                 "AB07_05", "AB07_06", "AB07_07", "AB07_08", "AB07_09",
+                                 width = 0.4)
+    
+    @render.plot
+    def plot_beurteilung_likert3():
+        return plot_likert_chart(input, filtered_surveys3(),
+                                 "AB09_01", "AB09_02", "AB09_03",
+                                 "AB09_04", "AB09_05", "AB09_06", "AB09_07",
+                                 width = 0.4)
+    
+    @render.plot
+    def plot_lernwirksamkeit_likert3():
+        return plot_likert_chart(input, filtered_surveys3(),
+                                 "AB14_06", "AB14_07", "AB14_08", "AB14_09",
+                                 width = 0.4)
 
+    @render.data_frame
+    def df_freetext3():
+        try:
+            df = filtered_surveys3()[["AB01_01", "AB10_01", "AB11_01", "AB12_01"]].dropna().astype(str).copy()
+            df = df[df[["AB01_01", "AB10_01", "AB11_01", "AB12_01"]].apply(lambda x: x.str.len() >= 3).any(axis=1)]
+
+            df = df.rename(
+                columns={
+                    "AB01_01": "Lehr-Lern-Innovation",
+                    "AB10_01": "Mehr Unterstützung",
+                    "AB11_01": "Über die LV hinausgehende Fähigkeiten",
+                    "AB12_01": "Sonstige Bemerkungen",
+                }
+            )
+
+            return render.DataTable(df, width="100%")
+        except KeyError:
+                pass
+
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_freetext3)
+    def _():
+        m = ui.modal(
+            ui.panel_well(
+                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
+                class_="mb-4",
+            ),
+            ui.navset_pill(
+                ui.nav_panel("Lehr-Lern-Innovation",
+                    ui.div(
+                        ui.h6(get_label("AB01_01")),
+                        ui.output_ui("ai_summary_q1_freetext3"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Unterstützungsbedarf",
+                    ui.div(
+                        ui.h6(get_label("AB10_01")),
+                        ui.output_ui("ai_summary_q2_freetext3"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Fähigkeiten",
+                    ui.div(
+                        ui.h6(get_label("AB11_01")),
+                        ui.output_ui("ai_summary_q3_freetext3"),
+                        class_="mt-4",
+                    ),
+                ),
+                ui.nav_panel("Bemerkungen",
+                    ui.div(
+                        ui.h6(get_label("AB12_01")),
+                        ui.output_ui("ai_summary_q4_freetext3"),
+                        class_="mt-4",
+                    ),
+                ),
+            ),
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
+        )
+
+        ui.modal_show(m)
+    
+    def ai_summary_freetext3(var):
+        df = filtered_surveys3()
+        label = get_label(var)
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
+
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                    f"{answers}\n\n" \
+                    f"Bitte fasse die Antworten zusammen."
+    
+        return ai_conversation(ai_message(question))
+
+    @render.ui
+    def ai_summary_q1_freetext3():
+        return ui.markdown(ai_summary_freetext3("AB01_01"))
+    
+    @render.ui
+    def ai_summary_q2_freetext3():
+        return ui.markdown(ai_summary_freetext3("AB10_01"))
+    
+    @render.ui
+    def ai_summary_q3_freetext3():
+        return ui.markdown(ai_summary_freetext3("AB11_01"))
+    
+    @render.ui
+    def ai_summary_q4_freetext3():
+        return ui.markdown(ai_summary_freetext3("AB12_01"))
+    
 #------------------------------------------------------------------------------
 # DIRA2 Learning Diaries
 #------------------------------------------------------------------------------
@@ -749,8 +902,7 @@ def survey_dira2_special_server(input, output, session):
     def _():
         m = ui.modal(
             ui.panel_well(
-                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint. " \
-                "Die KI ist nicht so schnell im Lesen ...",
+                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
                 class_="mb-4",
             ),
             ui.navset_pill(

@@ -117,7 +117,7 @@ def sidebar_server(input, output, session):
                                 ),
                             ),
                             ui.nav_panel(
-                                "Student Engagement",
+                                "Studentisches Engagement",
                                 ui_correlation_plus_minus(input, "VU03_03", "student1"),
                                 ui_correlation_plus_minus(input, "VU03_04", "student1"),
                                 ui_correlation_plus_minus(input, "V209_01", "student1"),
@@ -156,28 +156,50 @@ def sidebar_server(input, output, session):
                         class_="mt-4",
                     ),
                 ),
-                # ui.nav_panel(
-                #     "Studentische Abschlussumfrage",
-                #     ui.div(
-                #         ui.navset_card_tab(
-                #             ui.nav_panel(
-                #                 "Klarheit und Überforderung",
-                #                 ui_correlation_plus_minus(input, "ZW04_01", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_02", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_03", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_04", "student3"),
-                #             ),
-                #             ui.nav_panel(
-                #                 "Zufriedenheit",
-                #                 ui_correlation_plus_minus(input, "ZW04_05", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_06", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_07", "student3"),
-                #                 ui_correlation_plus_minus(input, "ZW04_08", "student3"),
-                #             ),
-                #         ),
-                #         class_="mt-4",
-                #     ),
-                # ),
+                ui.nav_panel(
+                    "Studentische Abschlussumfrage",
+                    ui.div(
+                        ui.navset_card_tab(
+                            ui.nav_panel(
+                                "Inhalt der Lehrveranstaltung",
+                                ui_correlation_plus_minus(input, "AB03_01", "student3"),
+                                ui_correlation_plus_minus(input, "AB03_02", "student3"),
+                                ui_correlation_plus_minus(input, "AB03_03", "student3"),
+                                ui_correlation_plus_minus(input, "AB03_04", "student3"),
+                            ),
+                            ui.nav_panel(
+                                "Studentisches Engagement",
+                                ui_correlation_plus_minus(input, "AB07_01", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_02", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_03", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_04", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_05", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_06", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_07", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_08", "student3"),
+                                ui_correlation_plus_minus(input, "AB07_09", "student3"),
+                            ),
+                            ui.nav_panel(
+                                "Beurteilung der Partizipation",
+                                ui_correlation_plus_minus(input, "AB09_01", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_02", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_03", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_04", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_05", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_06", "student3"),
+                                ui_correlation_plus_minus(input, "AB09_07", "student3"),
+                            ),
+                            ui.nav_panel(
+                                "Beurteilung der Lernwirksamkeit",
+                                ui_correlation_plus_minus(input, "AB14_06", "student3"),
+                                ui_correlation_plus_minus(input, "AB14_07", "student3"),
+                                ui_correlation_plus_minus(input, "AB14_08", "student3"),
+                                ui_correlation_plus_minus(input, "AB14_09", "student3"),
+                            ),
+                        ),
+                        class_="mt-4",
+                    ),
+                ),
                 ui.nav_menu(
                     "Spezifische Umfragen",
                     ui.nav_panel(
