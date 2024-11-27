@@ -27,8 +27,11 @@ def __init__():
 
     data["STARTED"] = pd.to_datetime(data["STARTED"])
 
-    # Repair survey that was accidentally run for the wrong teacher
+    # Remove dummy responses
     data = data[data["CASE"] != 242]
+    data = data[data["CASE"] != 432]
+
+    # Repair survey that was accidentally run for the wrong teacher
     filtered_rows = data[(data["QUESTNNR"] == "S-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
     data.loc[filtered_rows.index, "QUESTNNR"] = "S-KAWE-1"
 
