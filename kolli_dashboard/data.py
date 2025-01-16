@@ -30,6 +30,7 @@ def __init__():
     # Remove dummy responses
     data = data[data["CASE"] != 242]
     data = data[data["CASE"] != 432]
+    data = data[data["CASE"] != 523]
 
     # Repair survey that was accidentally run for the wrong teacher
     filtered_rows = data[(data["QUESTNNR"] == "S-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
