@@ -31,6 +31,7 @@ def __init__():
     data = data[data["CASE"] != 242]
     data = data[data["CASE"] != 432]
     data = data[data["CASE"] != 523]
+    data = data[data["CASE"] != 553]
 
     # Repair survey that was accidentally run for the wrong teacher
     filtered_rows = data[(data["QUESTNNR"] == "S-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
@@ -74,6 +75,7 @@ def __init__():
         "labels":   labels,
         "max_date": data["STARTED"].max().strftime('%d.%m.%Y'),
         "teachers": data["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
+        "lectures": data["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist(),
     }
 
 data    = __init__()

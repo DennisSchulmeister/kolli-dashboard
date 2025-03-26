@@ -24,11 +24,12 @@ import numpy             as np
 #------------------------------------------------------------------------------
 ai_button_class = "" if ai_conversation_available() else "d-none"
 
-icon_students = faicons.icon_svg("graduation-cap", width="50px")
-icon_courses  = faicons.icon_svg("users", width="50px")
-icon_teachers = faicons.icon_svg("chalkboard-user", width="50px")
+icon_students = faicons.icon_svg("graduation-cap",    width="50px")
+icon_courses  = faicons.icon_svg("users",             width="50px")
+icon_teachers = faicons.icon_svg("chalkboard-user",   width="50px")
+icon_lectures = faicons.icon_svg("person-chalkboard", width="50px")
 
-def students_ui():
+def students1_ui():
     return [
         ui.h4("Studentische Evaluation"),
         ui.navset_pill(
@@ -73,6 +74,13 @@ def survey1_ui():
                 ui.output_ui("count_teachers1"),
                 ui.output_ui("id_teachers1"),
                 showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
+            ui.value_box(
+                "Veranstaltungen",
+                ui.output_ui("count_lectures1"),
+                ui.output_ui("id_lectures1"),
+                showcase = icon_lectures,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
         ),
@@ -149,6 +157,13 @@ def survey2_ui():
                 showcase = icon_teachers,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
+            ui.value_box(
+                "Veranstaltungen",
+                ui.output_ui("count_lectures2"),
+                ui.output_ui("id_lectures2"),
+                showcase = icon_lectures,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
         ),
         ui.output_ui("no_data2"),
         ui.layout_columns(
@@ -210,6 +225,13 @@ def survey3_ui():
                 ui.output_ui("count_teachers3"),
                 ui.output_ui("id_teachers3"),
                 showcase = icon_teachers,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
+            ui.value_box(
+                "Veranstaltungen",
+                ui.output_ui("count_lectures3"),
+                ui.output_ui("id_lectures3"),
+                showcase = icon_lectures,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
         ),
@@ -278,6 +300,13 @@ def survey_dira2_special_ui():
                 showcase = icon_teachers,
                 theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
             ),
+            ui.value_box(
+                "Veranstaltungen",
+                ui.output_ui("count_lectures_dira2_special"),
+                ui.output_ui("id_lectures_dira2_special"),
+                showcase = icon_lectures,
+                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
+            ),
         ),
         ui.output_ui("no_data_dira2_special"),
         ui.output_plot("plot_likert_dira2_special"),
@@ -299,7 +328,7 @@ def survey_dira2_special_ui():
 #------------------------------------------------------------------------------
 # All Together
 #------------------------------------------------------------------------------
-def students_server(input, output, session):
+def students1_server(input, output, session):
     survey1_server(input, output, session)
     survey2_server(input, output, session)
     survey3_server(input, output, session)
@@ -312,8 +341,10 @@ def survey1_server(input, output, session):
     @reactive.calc
     def filtered_surveys1():
         teachers   = input.teachers() or data["teachers"]
-        questnnrs1 = [f"S-{teacher}-1" for teacher in teachers]
-        questnnrs2 = [f"S-{teacher}-1-alt" for teacher in teachers]
+        lectures   = input.lectures() or data["lectures"]
+
+        questnnrs1 = [f"S-{teacher}-{lecture}-1"     for teacher in teachers for lecture in lectures]
+        questnnrs2 = [f"S-{teacher}-{lecture}-1-alt" for teacher in teachers for lecture in lectures]
 
         start_date  = pd.to_datetime(input.date_range()[0])
         end_date    = pd.to_datetime(input.date_range()[1])
@@ -364,7 +395,21 @@ def survey1_server(input, output, session):
             return ", ".join(filtered_surveys1()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
         except KeyError:
             return ""
+
+    @render.text
+    def count_lectures1():
+        try:
+            return filtered_surveys1()["QUESTNNR"].str.split("-", expand=True)[2].unique().shape[0]
+        except KeyError:
+            return 0
     
+    @render.text
+    def id_lectures1():
+        try:
+            return ", ".join(filtered_surveys1()["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist())
+        except KeyError:
+            return ""
+        
     @render.text
     def no_data1():
         if filtered_surveys1().shape[0] == 0:
@@ -490,8 +535,10 @@ def survey2_server(input, output, session):
     @reactive.calc
     def filtered_surveys2():
         teachers   = input.teachers() or data["teachers"]
-        questnnrs1 = [f"S-{teacher}-2" for teacher in teachers]
-        questnnrs2 = [f"S-{teacher}-2-alt" for teacher in teachers]
+        lectures   = input.lectures() or data["lectures"]
+
+        questnnrs1 = [f"S-{teacher}-{lecture}-2"     for teacher in teachers for lecture in lectures]
+        questnnrs2 = [f"S-{teacher}-{lecture}-2-alt" for teacher in teachers for lecture in lectures]
         
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
@@ -539,6 +586,20 @@ def survey2_server(input, output, session):
         except KeyError:
             return ""
     
+    @render.text
+    def count_lectures2():
+        try:
+            return filtered_surveys2()["QUESTNNR"].str.split("-", expand=True)[2].unique().shape[0]
+        except KeyError:
+            return 0
+    
+    @render.text
+    def id_lectures2():
+        try:
+            return ", ".join(filtered_surveys2()["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist())
+        except KeyError:
+            return ""
+
     @render.text
     def no_data2():
         if filtered_surveys2().shape[0] == 0:
@@ -639,8 +700,10 @@ def survey3_server(input, output, session):
     @reactive.calc
     def filtered_surveys3():
         teachers   = input.teachers() or data["teachers"]
-        questnnrs1 = [f"S-{teacher}-3" for teacher in teachers]
-        questnnrs2 = [f"S-{teacher}-3-alt" for teacher in teachers]
+        lectures   = input.lectures() or data["lectures"]
+
+        questnnrs1 = [f"S-{teacher}-{lecture}-3"      for teacher in teachers for lecture in lectures]
+        questnnrs2 = [f"S-{teacher}-{lecture}-3-alt"  for teacher in teachers for lecture in lectures]
         
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
@@ -685,6 +748,20 @@ def survey3_server(input, output, session):
     def id_teachers3():
         try:
             return ", ".join(filtered_surveys3()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
+        except KeyError:
+            return ""
+
+    @render.text
+    def count_lectures3():
+        try:
+            return filtered_surveys3()["QUESTNNR"].str.split("-", expand=True)[2].unique().shape[0]
+        except KeyError:
+            return 0
+    
+    @render.text
+    def id_lectures3():
+        try:
+            return ", ".join(filtered_surveys3()["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist())
         except KeyError:
             return ""
 
@@ -818,10 +895,11 @@ def survey_dira2_special_server(input, output, session):
     @reactive.calc
     def filtered_surveys_dira2_special():
         teachers   = input.teachers() or data["teachers"]
+        lectures   = input.lectures() or data["lectures"]
         questnnrs  = []
 
-        if "DIRA" in teachers:
-            questnnrs = ["S-DIRA-2-special"]
+        if "DIRA" in teachers and "PROG1" in lectures:
+            questnnrs = ["S-DIRA-PROG1-2-special"]
 
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
@@ -868,6 +946,20 @@ def survey_dira2_special_server(input, output, session):
         except KeyError:
             return ""
     
+    @render.text
+    def count_lectures_dira2_special():
+        try:
+            return filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[2].unique().shape[0]
+        except KeyError:
+            return 0
+    
+    @render.text
+    def id_lectures_dira2_special():
+        try:
+            return ", ".join(filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist())
+        except KeyError:
+            return ""
+        
     @render.text
     def no_data_dira2_special():
         if filtered_surveys_dira2_special().shape[0] == 0:

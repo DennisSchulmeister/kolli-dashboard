@@ -7,11 +7,11 @@
 
 from shiny import ui
 
-def teachers_ui():
+def learning_room_ui():
     return [
-        ui.h4("Befragung der Lehrenden"),
-        "Bisher wurden noch keine Umfragen mit Lehrenden durchgeführt.",
+        ui.h4("Innovativer Lernraum"),
+        "Hier erscheint demnächst die Umfrage zum innovativen Lernraum.",
     ]
 
-def teachers_server(input, output, session):
+def learning_room_server(input, output, session):
     pass

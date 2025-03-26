@@ -14,6 +14,7 @@ def sidebar_ui():
         ui.div(
             ui.h5("Filterkriterien"),
             ui.input_selectize("teachers", "Lehrperson", multiple=True, choices=data["teachers"]),
+            ui.input_selectize("lectures", "Veranstaltung", multiple=True, choices=data["lectures"]),
             ui.input_date_range("date_range", "Zeitraum", start="2024-09-01", end="2026-04-30"),
             ui.input_action_button(
                 "btn_correlation_filter",
