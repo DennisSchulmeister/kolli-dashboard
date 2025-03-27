@@ -95,12 +95,14 @@ def __init__():
             pass
 
     # Return final result
+    data_round1 = data[data["QUESTNNR"].str.startswith("R1-")]
+
     return {
         "answers":  data,
         "labels":   labels,
         "max_date": data["STARTED"].max().strftime('%d.%m.%Y'),
-        "teachers": data["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
-        "lectures": data["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist(),
+        "teachers": data_round1["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
+        "lectures": data_round1["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist(),
     }
 
 data    = __init__()
