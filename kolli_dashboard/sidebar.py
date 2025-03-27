@@ -34,8 +34,8 @@ def sidebar_ui():
             ui.div(
                 ui.markdown(
                     """
-                    KoLLI ist ein an der DHBW Karlsruhe entwickelter Prozessleitfaden, der Lehrende dabei
-                    unterstützt, Lehr-Lern-Innovationen mit Studierenden partizipativ zu gestalten.
+                    KoLLI ist ein an der DHBW Karlsruhe entwickeltes Konzept, das Lehrende dabei
+                    unterstützt, Studierende die Möglichkeit zu geben, ihre Lernumgebung mitzugestalten.
                     Diese Anwendung zeigt die Evaluationsergebnisse des dazugehörigen Forschungsprojekts.
                     Das Projekt wird von der Stiftung Innovation in der Hochschullehre gefördert.
                     Die Projektlaufzeit ist von April 2024 bis April 2026.
