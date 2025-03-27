@@ -31,7 +31,7 @@ icon_lectures = faicons.icon_svg("person-chalkboard", width="50px")
 
 def students1_ui():
     return [
-        ui.h4("Studentische Evaluation"),
+        ui.h4("Runde 1 – Studentische Evaluation"),
         ui.navset_pill(
             ui.nav_panel("Vorumfrage", ui.div(survey1_ui(), class_="mt-4")),
             ui.nav_panel("Zwischenumfrage", ui.div(survey2_ui(), class_="mt-4")),
@@ -239,17 +239,17 @@ def survey3_ui():
 
         ui.div(
             ui.h5("Inhalt der Lehrveranstaltung"),
-            ui.output_plot("plot_lv_inhalt_likert3", height="400px"),
+            ui.output_plot("plot_lv_inhalt_likert3", height="450px"),
         ),
 
         ui.div(
             ui.h5("Studentisches Engagement"),
-            ui.output_plot("plot_engagement_likert3", height="900px"),
+            ui.output_plot("plot_engagement_likert3", height="800px"),
         ),
 
         ui.div(
             ui.h5("Beurteilung der Partizipation"),
-            ui.output_plot("plot_beurteilung_likert3", height="700px"),
+            ui.output_plot("plot_beurteilung_likert3", height="600px"),
         ),
 
         ui.div(
@@ -342,15 +342,12 @@ def survey1_server(input, output, session):
     def filtered_surveys1():
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
-
-        questnnrs1 = [f"S-{teacher}-{lecture}-1"     for teacher in teachers for lecture in lectures]
-        questnnrs2 = [f"S-{teacher}-{lecture}-1-alt" for teacher in teachers for lecture in lectures]
-
-        start_date  = pd.to_datetime(input.date_range()[0])
-        end_date    = pd.to_datetime(input.date_range()[1])
+        questnnrs  = [f"R1-{teacher}-{lecture}-1" for teacher in teachers for lecture in lectures]
+        start_date = pd.to_datetime(input.date_range()[0])
+        end_date   = pd.to_datetime(input.date_range()[1])
 
         conditions = [
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["QUESTNNR"].isin(questnnrs)),
             (data["answers"]["STARTED"] >= start_date),
             (data["answers"]["STARTED"] <= end_date),
         ]
@@ -536,15 +533,12 @@ def survey2_server(input, output, session):
     def filtered_surveys2():
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
-
-        questnnrs1 = [f"S-{teacher}-{lecture}-2"     for teacher in teachers for lecture in lectures]
-        questnnrs2 = [f"S-{teacher}-{lecture}-2-alt" for teacher in teachers for lecture in lectures]
-        
+        questnnrs  = [f"R1-{teacher}-{lecture}-2" for teacher in teachers for lecture in lectures]
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
         conditions = [
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["QUESTNNR"].isin(questnnrs)),
             (data["answers"]["STARTED"] >= start_date),
             (data["answers"]["STARTED"] <= end_date),
         ]
@@ -701,15 +695,12 @@ def survey3_server(input, output, session):
     def filtered_surveys3():
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
-
-        questnnrs1 = [f"S-{teacher}-{lecture}-3"      for teacher in teachers for lecture in lectures]
-        questnnrs2 = [f"S-{teacher}-{lecture}-3-alt"  for teacher in teachers for lecture in lectures]
-        
+        questnnrs  = [f"R1-{teacher}-{lecture}-3" for teacher in teachers for lecture in lectures]
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
         conditions = [
-            (data["answers"]["QUESTNNR"].isin(questnnrs1 + questnnrs2)),
+            (data["answers"]["QUESTNNR"].isin(questnnrs)),
             (data["answers"]["STARTED"] >= start_date),
             (data["answers"]["STARTED"] <= end_date),
         ]
@@ -773,7 +764,7 @@ def survey3_server(input, output, session):
     @render.plot
     def plot_lv_inhalt_likert3():
         return plot_likert_chart(input, filtered_surveys3(),
-                                 "AB03_01", "AB03_02", "AB03_03", "AB03_04",
+                                 "AB03_01", "AB03_02", "AB03_03", "AB03_04", "AB03_05",
                                  width = 0.4)
     
     @render.plot
@@ -799,14 +790,15 @@ def survey3_server(input, output, session):
     @render.data_frame
     def df_freetext3():
         try:
-            df = filtered_surveys3()[["AB01_01", "AB10_01", "AB11_01", "AB12_01"]].dropna().astype(str).copy()
-            df = df[df[["AB01_01", "AB10_01", "AB11_01", "AB12_01"]].apply(lambda x: x.str.len() >= 3).any(axis=1)]
+            df = filtered_surveys3()[["AB01_01", "AB10_01", "AB11_01", "AB15_01", "AB12_01"]].fillna("").astype(str).copy()
+            df = df[df[["AB01_01", "AB10_01", "AB11_01", "AB15_01", "AB12_01"]].apply(lambda x: x.str.len() >= 3).any(axis=1)]
 
             df = df.rename(
                 columns={
                     "AB01_01": "Lehr-Lern-Innovation",
                     "AB10_01": "Mehr Unterstützung",
                     "AB11_01": "Über die LV hinausgehende Fähigkeiten",
+                    "AB15_01": "Weitere Themen",
                     "AB12_01": "Sonstige Bemerkungen",
                 }
             )
@@ -845,10 +837,17 @@ def survey3_server(input, output, session):
                         class_="mt-4",
                     ),
                 ),
+                ui.nav_panel("Weitere Themen",
+                    ui.div(
+                        ui.h6(get_label("AB15_01")),
+                        ui.output_ui("ai_summary_q4_freetext3"),
+                        class_="mt-4",
+                    ),
+                ),
                 ui.nav_panel("Bemerkungen",
                     ui.div(
                         ui.h6(get_label("AB12_01")),
-                        ui.output_ui("ai_summary_q4_freetext3"),
+                        ui.output_ui("ai_summary_q5_freetext3"),
                         class_="mt-4",
                     ),
                 ),
@@ -886,6 +885,10 @@ def survey3_server(input, output, session):
     
     @render.ui
     def ai_summary_q4_freetext3():
+        return ui.markdown(ai_summary_freetext3("AB15_01"))
+    
+    @render.ui
+    def ai_summary_q5_freetext3():
         return ui.markdown(ai_summary_freetext3("AB12_01"))
     
 #------------------------------------------------------------------------------
@@ -899,7 +902,7 @@ def survey_dira2_special_server(input, output, session):
         questnnrs  = []
 
         if "DIRA" in teachers and "PROG1" in lectures:
-            questnnrs = ["S-DIRA-PROG1-2-special"]
+            questnnrs = ["R1-DIRA-PROG1-2-special"]
 
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])

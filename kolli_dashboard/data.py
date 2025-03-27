@@ -34,8 +34,8 @@ def __init__():
     data = data[data["CASE"] != 553]
 
     # Repair survey that was accidentally run for the wrong teacher
-    filtered_rows = data[(data["QUESTNNR"] == "S-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
-    data.loc[filtered_rows.index, "QUESTNNR"] = "S-KAWE-1"
+    filtered_rows = data[(data["QUESTNNR"] == "R1-SILA-1") & (data["STARTED"].dt.date == pd.to_datetime("2024-10-16").date())]
+    data.loc[filtered_rows.index, "QUESTNNR"] = "R1-KAWE-1"
 
     # Make initial pre-survey compatible with the later version
     data["VU03_01"] = data["VU03_01"].clip(upper=4)
@@ -52,15 +52,32 @@ def __init__():
 
     data.drop(["VU01_01", "VU02_01", "VU03_01", "VU03_02"], axis=1, inplace=True)
 
-    # Question DR06_01 from survey S-DIRA-2-spezial can be used for the student mid survey, too
+    # Question DR06_01 from survey R1-DIRA-PROG1-2-special can be used for the student mid survey, too
     try:
-        dira2_special = data[(data["QUESTNNR"] == "S-DIRA-2-special") & (data["DR06_01"].notnull())].copy()
-        dira2_special["QUESTNNR"] = "S-DIRA-2"
+        dira2_special = data[(data["QUESTNNR"] == "R1-DIRA-2-special") & (data["DR06_01"].notnull())].copy()
+        dira2_special["QUESTNNR"] = "R1-DIRA-2"
         dira2_special.loc[:,"ZW04_01"] = dira2_special["DR06_01"]
         dira2_special.drop("DR06_01", axis=1)
         data = pd.concat([data, dira2_special], ignore_index=True)
     except KeyError:
         pass
+
+    # Survey S-KAWE-SENG-3 uses slightly different wording for some questions
+    for target, source in [
+        ("AB09_01", "AB16_01"),
+        ("AB09_02", "AB16_02"),
+        ("AB09_03", "AB16_03"),
+        ("AB09_04", "AB16_04"),
+        ("AB09_05", "AB16_05"),
+        ("AB09_06", "AB16_06"),
+        ("AB09_07", "AB16_07"),
+        ("AB14_06", "AB17_06"),
+        ("AB14_07", "AB17_07"),
+        ("AB14_08", "AB17_08"),
+        ("AB14_09", "AB17_09"),
+    ]:
+        mask = data[source].notnull()
+        data.loc[mask, target] = data.loc[mask, source]
 
     # Convert plus_minus likert questions to strings
     for label in labels[labels["TYPE"] == "plus_minus"].itertuples():
@@ -68,7 +85,7 @@ def __init__():
             data[label.VAR] = data[label.VAR].apply(to_scale_minus_plus)
         except KeyError:
             pass
-
+    
     # Return final result
     return {
         "answers":  data,
