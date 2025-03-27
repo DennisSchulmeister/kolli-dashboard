@@ -5,9 +5,11 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from .utils import src_dir, scale_minus_plus, to_scale_minus_plus
+from .utils import src_dir, scale_minus_plus, to_scale_minus_plus, checkbox_to_scale_minus_plus
 from shiny  import reactive
 
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 import pandas as pd
 import plot_likert
 
@@ -86,6 +88,12 @@ def __init__():
         except KeyError:
             pass
     
+    for label in labels[labels["TYPE"] == "checkbox_plus_minus"].itertuples():
+        try:
+            data[label.VAR] = data[label.VAR].apply(checkbox_to_scale_minus_plus)
+        except KeyError:
+            pass
+
     # Return final result
     return {
         "answers":  data,
@@ -167,9 +175,7 @@ def plot_likert_chart(input, data, *vars, width=0.15):
     plot_percentage = input.number_format() == "percent"
 
     df = data[[*vars]]
-
-    for var in vars:
-        df = df.rename(columns={var: get_label(var)})
+    df = df.rename(columns={var: get_label(var) for var in vars})
 
     # Bug in plot-likert? Crashes with percentages if there a no answers for one question
     df1 = df.copy()
@@ -186,7 +192,7 @@ def plot_likert_chart(input, data, *vars, width=0.15):
     else:
         plot_likert.__internal__.BAR_LABEL_FORMAT = "%.0f"
 
-    return plot_likert.plot_likert(
+    ax = plot_likert.plot_likert(
         df              = df,
         plot_scale      = scale_minus_plus,
         plot_percentage = plot_percentage,
@@ -194,3 +200,21 @@ def plot_likert_chart(input, data, *vars, width=0.15):
         width           = width,
         legend          = 0,
     )
+
+    ax.set_xlabel("Anzahl Antworten")
+    return ax
+
+def plot_multiple_choice_bar_chart(input, data, *vars):
+        fig, ax = plt.subplots()
+        df      = data[[var for var in vars]].astype(int).copy()
+        df      = df.rename(columns={var: get_label(var) for var in vars})
+        counts  = (df == 2).sum()
+
+        if input.number_format() == "percent":
+            ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=df.shape[0]))
+
+        ax.bar(counts.index, counts.values)
+        ax.set_ylabel("Anzahl Antworten")
+        ax.set_xticklabels(counts.index, rotation=10, ha="right")
+        
+        return fig
