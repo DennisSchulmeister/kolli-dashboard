@@ -116,7 +116,7 @@ Copyright
 **Dennis Schulmeister-Zimolong &lt;[dennis@wpvs.de](mailto:dennis@wpvs.de)&gt;** <br>
 Lizenziert unter der BSD 3-Clause Lizenz <br>
 
-Webseite: https://kollaborative-lehre.de
+Webseite: https://kooperative-lehre.de
 
 _Das Forschungsprojekt KoLLI (Kooperative Lehr-Lern-Innovation) wird von der
 Stiftung Innovation in der Hochschullehre gefördert. Die Projektlaufzeit ist
