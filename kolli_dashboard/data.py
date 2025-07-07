@@ -95,22 +95,22 @@ def __init__():
             pass
 
     # Return final result
-    data_round1 = data[data["QUESTNNR"].str.startswith("R1-")]
+    _data = data[data["QUESTNNR"].str.startswith(("R1-", "R2-", "R3-"))]
 
     return {
         "answers":  data,
         "labels":   labels,
         "max_date": data["STARTED"].max().strftime('%d.%m.%Y'),
-        "teachers": data_round1["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
-        "lectures": data_round1["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist(),
+        "teachers": _data["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist(),
+        "lectures": _data["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist(),
     }
 
 data    = __init__()
-version = "1.4.0"
+version = "1.5.0"
 
 # Reactive values for correlation filters
 correlation_filters = {
-    "student1": {
+    "round1_student1": {
         "V201_01": reactive.value([]),
         "V201_02": reactive.value([]),
         "V204_01": reactive.value([]),
@@ -128,7 +128,7 @@ correlation_filters = {
         "V209_08": reactive.value([]),
         "V209_09": reactive.value([]),
     },
-    "student2": {
+    "round1_student2": {
         "ZW04_01": reactive.value([]),
         "ZW04_02": reactive.value([]),
         "ZW04_03": reactive.value([]),
@@ -138,7 +138,7 @@ correlation_filters = {
         "ZW04_07": reactive.value([]),
         "ZW04_08": reactive.value([]),
     },
-    "student3": {
+    "round1_student3": {
         "AB03_01": reactive.value([]),
         "AB03_02": reactive.value([]),
         "AB03_03": reactive.value([]),
@@ -164,9 +164,43 @@ correlation_filters = {
         "AB14_08": reactive.value([]),
         "AB14_09": reactive.value([]),
     },
-    "student-DIRA2_special": {
+    "round2_student3": {
+        "R201_01": reactive.value([]),
+        "R201_02": reactive.value([]),
+        "R201_03": reactive.value([]),
+        "R201_04": reactive.value([]),
+        "R201_05": reactive.value([]),
+        "R202_02": reactive.value([]),
+        "R202_03": reactive.value([]),
+        "R202_04": reactive.value([]),
+        "R202_05": reactive.value([]),
+        "R202_06": reactive.value([]),
+        "R204_01": reactive.value([]),
+    },
+    "round1_student-DIRA2_special": {
         "DR06_01": reactive.value([]),
         "DR06_08": reactive.value([]),
+    },
+    "round2_student-DESC_general": {
+        "AA01_01": reactive.value([]),
+        "AA01_02": reactive.value([]),
+        "AA01_03": reactive.value([]),
+        "AA01_04": reactive.value([]),
+        "AA02_01": reactive.value([0, 11]),
+        "AA03_01": reactive.value([]),
+        "AA03_02": reactive.value([]),
+        "AA03_03": reactive.value([]),
+        "AA03_04": reactive.value([]),
+    },
+    "round2_student-DESC_specific": {
+        "AS01_01": reactive.value([]),
+        "AS01_02": reactive.value([]),
+        "AS01_03": reactive.value([]),
+        "AS02_01": reactive.value([]),
+        "AS02_02": reactive.value([]),
+        "AS02_03": reactive.value([]),
+        "AS02_04": reactive.value([]),
+        "AS02_05": reactive.value([]),
     },
 }
 
@@ -207,16 +241,16 @@ def plot_likert_chart(input, data, *vars, width=0.15):
     return ax
 
 def plot_multiple_choice_bar_chart(input, data, *vars):
-        fig, ax = plt.subplots()
-        df      = data[[var for var in vars]].astype(int).copy()
-        df      = df.rename(columns={var: get_label(var) for var in vars})
-        counts  = (df == 2).sum()
+    fig, ax = plt.subplots()
+    df      = data[[var for var in vars]].astype(int).copy()
+    df      = df.rename(columns={var: get_label(var) for var in vars})
+    counts  = (df == 2).sum()
 
-        if input.number_format() == "percent":
-            ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=df.shape[0]))
+    if input.number_format() == "percent":
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=df.shape[0]))
 
-        ax.bar(counts.index, counts.values)
-        ax.set_ylabel("Anzahl Antworten")
-        ax.set_xticklabels(counts.index, rotation=10, ha="right")
-        
-        return fig
+    ax.bar(counts.index, counts.values)
+    ax.set_ylabel("Anzahl Antworten")
+    ax.set_xticklabels(counts.index, rotation=10, ha="right")
+    
+    return fig

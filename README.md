@@ -9,8 +9,8 @@ Forschungsprojekt KoLLI: Dashboard
 Übersicht
 ---------
 
-Kooperative Lehr-Lern-Innovationen beziehen die Studierenden in die Gestaltung der
-Lehre mit ein und fördern dadurch insbesondere die studentische Partizipation.
+Kooperative Lehr-Lern-Innovationen lassen Studierenden die Verbesserung der Lehre
+mitgestalten. Es handelt sich um eine erweiterte Form der studentischen Partizipation.
 KoLLI ist ein an der DHBW Karlsruhe entwickeltes Konzept, das Lehrende hierbei
 unterstützt. Diese Anwendung zeigt die Evaluationsergebnisse des dazugehörigen
 Forschungsprojekts. Das Projekt wird von der Stiftung Innovation in der Hochschullehre
@@ -112,7 +112,7 @@ Copyright
 ---------
 
 **Forschungsprojekt KoLLI: Dashboard** <br/>
-**© 2024 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik** <br>
+**© 2024 – 2026 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik** <br>
 **Dennis Schulmeister-Zimolong &lt;[dennis@wpvs.de](mailto:dennis@wpvs.de)&gt;** <br>
 Lizenziert unter der BSD 3-Clause Lizenz <br>
 

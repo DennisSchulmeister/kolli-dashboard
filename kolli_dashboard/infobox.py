@@ -20,7 +20,7 @@ def infobox_server(input, output, session):
         m = ui.modal(
             ui.markdown(
                 f"""
-                **© 2024 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik** <br>
+                **© 2024 – 2026 DHBW Karlsruhe / Studiengang Wirtschaftsinformatik** <br>
                 **Dennis Schulmeister-Zimolong &lt;[dennis@wpvs.de](mailto:dennis@wpvs.de)&gt;** <br>
                 Lizenziert unter der BSD 3-Clause Lizenz
 
