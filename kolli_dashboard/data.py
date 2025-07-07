@@ -81,6 +81,10 @@ def __init__():
         mask = data[source].notnull()
         data.loc[mask, target] = data.loc[mask, source]
 
+    # Replace missing numerical values with minus one
+    data["V203_01"] = data["V203_01"].fillna(-1)
+    data["AA02_01"] = data["AA02_01"].fillna(-1)
+
     # Convert plus_minus likert questions to strings
     for label in labels[labels["TYPE"] == "plus_minus"].itertuples():
         try:
@@ -106,7 +110,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.5.0"
+version = "1.5.1"
 
 # Reactive values for correlation filters
 correlation_filters = {
@@ -115,7 +119,7 @@ correlation_filters = {
         "V201_02": reactive.value([]),
         "V204_01": reactive.value([]),
         "V204_02": reactive.value([]),
-        "V203_01": reactive.value([0, 11]),
+        "V203_01": reactive.value([-1, 11]),
         "VU03_03": reactive.value([]),
         "VU03_04": reactive.value([]),
         "V209_01": reactive.value([]),
@@ -186,7 +190,7 @@ correlation_filters = {
         "AA01_02": reactive.value([]),
         "AA01_03": reactive.value([]),
         "AA01_04": reactive.value([]),
-        "AA02_01": reactive.value([0, 11]),
+        "AA02_01": reactive.value([-1, 11]),
         "AA03_01": reactive.value([]),
         "AA03_02": reactive.value([]),
         "AA03_03": reactive.value([]),

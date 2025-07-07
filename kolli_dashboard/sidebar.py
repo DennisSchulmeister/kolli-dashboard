@@ -112,7 +112,7 @@ def sidebar_server(input, output, session):
                                     ui.input_slider(
                                         "correlation_V203_01",
                                         get_label("V203_01"),
-                                        min   = 0,
+                                        min   = -1,
                                         max   = 11,
                                         value = correlation_filters["round1_student1"]["V203_01"].get(),
                                         ticks = True,
@@ -257,7 +257,7 @@ def sidebar_server(input, output, session):
                                     ui.input_slider(
                                         "correlation_AA02_01",
                                         get_label("AA02_01"),
-                                        min   = 0,
+                                        min   = -1,
                                         max   = 11,
                                         value = correlation_filters["round2_student-DESC_general"]["AA02_01"].get(),
                                         ticks = True,
@@ -321,8 +321,8 @@ def sidebar_server(input, output, session):
     @reactive.effect
     @reactive.event(input.btn_reset_correlation_filter)
     def _():
-        ui.update_slider("correlation_V203_01", value=[0, 11])
-        ui.update_slider("correlation_AA02_01", value=[0, 11])
+        ui.update_slider("correlation_V203_01", value=[-1, 11])
+        ui.update_slider("correlation_AA02_01", value=[-1, 11])
 
         for selectize in all_correlation_plus_minus_selectize:
             ui.update_selectize(selectize, selected=[])
