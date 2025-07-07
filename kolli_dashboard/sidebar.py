@@ -321,8 +321,8 @@ def sidebar_server(input, output, session):
     @reactive.effect
     @reactive.event(input.btn_reset_correlation_filter)
     def _():
-        ui.update_slider("correlation_V203_01", value=[0, 11])
-        ui.update_slider("correlation_AA02_01", value=[0, 11])
+        ui.update_slider("correlation_V203_01", value=[-1, 11])
+        ui.update_slider("correlation_AA02_01", value=[-1, 11])
 
         for selectize in all_correlation_plus_minus_selectize:
             ui.update_selectize(selectize, selected=[])
