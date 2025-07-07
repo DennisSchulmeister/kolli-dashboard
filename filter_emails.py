@@ -15,7 +15,7 @@
 import csv, sys
 
 input_path = "kolli_dashboard/data/data.csv"
-columns_to_remove = ["AA05_1", "R206_01"]
+columns_to_remove = ["AA05_01", "R206_01"]
 
 # Read the file
 with open(input_path, "r", encoding="utf-16") as f:
@@ -31,10 +31,13 @@ remove_indices = [fieldnames.index(col) for col in columns_to_remove if col in f
 
 # Print and remove the columns
 for row in rows:
+    questionnaire = row.get("QUESTNNR", "").strip()
+
     for col in columns_to_remove:
-        value = row.get(col, "").strip()
-        if value != "":
-            print(value)
+        email = row.get(col, "").strip()
+
+        if email != "":
+            print(questionnaire, "\t", email)
 
 # Write back the filtered data
 new_fieldnames = [fn for fn in fieldnames if fn not in columns_to_remove]
