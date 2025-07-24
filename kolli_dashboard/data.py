@@ -110,7 +110,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.5.1"
+version = "1.5.2"
 
 # Reactive values for correlation filters
 correlation_filters = {
