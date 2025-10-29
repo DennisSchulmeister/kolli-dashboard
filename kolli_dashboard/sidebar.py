@@ -299,6 +299,37 @@ def sidebar_server(input, output, session):
                         )
                     ),
                 ),
+                ui.nav_menu(
+                    "Runde 3",
+                    ui.nav_panel(
+                        "Studentische Abschlussumfrage",
+                        ui.div(
+                            ui.navset_card_tab(
+                                ui.nav_panel(
+                                    "Umsetzung der Mitgestaltung",
+                                    ui_correlation_plus_minus(input, "R201_01", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R201_02", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R201_03", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R201_04", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R201_05", "round3_student3"),
+                                ),
+                                ui.nav_panel(
+                                    "Wirkung der Mitgestaltung",
+                                    ui_correlation_plus_minus(input, "R202_02", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R202_03", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R202_04", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R202_05", "round3_student3"),
+                                    ui_correlation_plus_minus(input, "R202_06", "round3_student3"),
+                                ),
+                                ui.nav_panel(
+                                    "Sonstiges",
+                                    ui_correlation_plus_minus(input, "R204_01", "round3_student3"),
+                                ),
+                            ),
+                            class_="mt-4",
+                        ),
+                    ),
+                ),
             ),
             title      = "Filter für Korrelationsanalyse",
             easy_close = True,

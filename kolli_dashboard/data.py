@@ -206,6 +206,19 @@ correlation_filters = {
         "AS02_04": reactive.value([]),
         "AS02_05": reactive.value([]),
     },
+    "round3_student3": {
+        "R201_01": reactive.value([]),
+        "R201_02": reactive.value([]),
+        "R201_03": reactive.value([]),
+        "R201_04": reactive.value([]),
+        "R201_05": reactive.value([]),
+        "R202_02": reactive.value([]),
+        "R202_03": reactive.value([]),
+        "R202_04": reactive.value([]),
+        "R202_05": reactive.value([]),
+        "R202_06": reactive.value([]),
+        "R204_01": reactive.value([]),
+    },
 }
 
 def get_label(var):
