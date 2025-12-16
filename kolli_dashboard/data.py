@@ -110,7 +110,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.5.4"
+version = "1.6.0"
 
 # Reactive values for correlation filters
 correlation_filters = {
@@ -207,6 +207,19 @@ correlation_filters = {
         "AS02_05": reactive.value([]),
     },
     "round3_student3": {
+        "R201_01": reactive.value([]),
+        "R201_02": reactive.value([]),
+        "R201_03": reactive.value([]),
+        "R201_04": reactive.value([]),
+        "R201_05": reactive.value([]),
+        "R202_02": reactive.value([]),
+        "R202_03": reactive.value([]),
+        "R202_04": reactive.value([]),
+        "R202_05": reactive.value([]),
+        "R202_06": reactive.value([]),
+        "R204_01": reactive.value([]),
+    },
+    "control_group_student3": {
         "R201_01": reactive.value([]),
         "R201_02": reactive.value([]),
         "R201_03": reactive.value([]),

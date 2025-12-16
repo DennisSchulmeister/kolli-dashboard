@@ -6,14 +6,12 @@
 # LICENSE file in the root directory of this source tree.
 
 from .ai_llm import ai_conversation, ai_conversation_available, ai_message
-from .data   import data, get_label, plot_likert_chart, plot_multiple_choice_bar_chart
+from .data   import data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
 import faicons
-import pandas            as pd
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-import numpy             as np
+import pandas as pd
+import numpy  as np
 
 #==============================================================================
 # UI Definition

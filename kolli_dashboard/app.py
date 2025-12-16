@@ -8,14 +8,15 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from .infobox   import infobox_ui, infobox_server
-from .sidebar   import sidebar_ui, sidebar_server
-from .round1    import round1_ui, round1_server
-from .round2    import round2_ui, round2_server
-from .round3    import round3_ui, round3_server
-from .others    import learning_room_ui, learning_room_server
-from .utils     import src_dir
-from shiny      import App, ui
+from .infobox       import infobox_ui, infobox_server
+from .sidebar       import sidebar_ui, sidebar_server
+from .round1        import round1_ui, round1_server
+from .round2        import round2_ui, round2_server
+from .round3        import round3_ui, round3_server
+from .control_group import control_group_ui, control_group_server
+from .learning_room import learning_room_ui, learning_room_server
+from .utils         import src_dir
+from shiny          import App, ui
 
 app_ui = ui.page_navbar(
     ui.head_content(ui.include_css(str(src_dir / "www" / "style.css"))),
@@ -23,6 +24,7 @@ app_ui = ui.page_navbar(
     ui.nav_panel("Runde 1", round1_ui(), value="round1"),
     ui.nav_panel("Runde 2", round2_ui(), value="round2"),
     ui.nav_panel("Runde 3", round3_ui(), value="round3"),
+    ui.nav_panel("Kontrollgruppe", control_group_ui(), value="control_group"),
     ui.nav_panel("Innovativer Lernraum", learning_room_ui(), value="learning_room"),
     ui.nav_control(infobox_ui()),
 
@@ -38,6 +40,7 @@ def server(input, output, session):
     round1_server(input, output, session)
     round2_server(input, output, session)
     round3_server(input, output, session)
+    control_group_server(input, output, session)
     learning_room_server(input, output, session)
     infobox_server(input, output, session)
 
