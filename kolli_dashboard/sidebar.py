@@ -23,10 +23,17 @@ def sidebar_ui():
         ),
 
         ui.div(
+            ui.input_selectize("display_type", "Darstellung", selected="absolut", choices={
+                "plot": "Schaubilder",
+                "stat": "Statistik",
+            }),
+        ),
+
+        ui.div(
             ui.input_selectize("number_format", "Zahlenformat", selected="absolut", choices={
-                "absolute": "Anzahl",
-                "percent":  "Prozent",
-                "stats":    "Statistik",
+                "absolute":   "Anzahl",
+                "percent":    "Prozent",
+                "statistics": "Statistik",
             }),
         ),
 

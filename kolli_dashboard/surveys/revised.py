@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
-from ..data   import correlation_filters, data, get_label, plot_likert_chart
+from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny    import reactive, render, ui
 
 import faicons
@@ -72,21 +72,21 @@ def revised_ui():
                     theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
                 ),
             ),
-            ui.output_ui("revised_no_data3"),
+            ui.output_ui("revised_no_data"),
 
             ui.div(
                 ui.h5("Umsetzung der Mitgestaltung"),
-                ui.output_plot("revised_plot_umsetzung_likert", height="450px"),
+                ui.output_ui("revised_umsetzung_likert")
             ),
 
             ui.div(
                 ui.h5("Wirkung der Mitgestaltung"),
-                ui.output_plot("revised_plot_wirkung_likert", height="450px"),
+                ui.output_ui("revised_wirkung_likert")
             ),
 
             ui.div(
                 ui.h5("Sonstiges"),
-                ui.output_plot("revised_plot_sonstiges_likert", height="150px"),
+                ui.output_ui("revised_sonstiges_likert")
             ),
 
             ui.div(
@@ -128,7 +128,6 @@ def revised_server(input, output, session):
         if input.revised_include_kg():
             questnnrs += [f"KG-R3-{teacher}-{lecture}" for teacher in teachers for lecture in lectures]
 
-        # TODO - Checkboxen zur Auswahl der Umfragen
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
 
@@ -182,28 +181,73 @@ def revised_server(input, output, session):
             return ""
 
     @render.text
-    def revised_no_data3():
+    def revised_no_data():
         if revised_filtered_surveys3().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
+
+    @render.ui
+    def revised_umsetzung_likert():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("revised_stats_umsetzung_likert")
+        else:
+            return ui.output_plot("revised_plot_umsetzung_likert", height="450px")
+
+    @render.data_frame
+    def revised_stats_umsetzung_likert():
+        return render.DataGrid(
+            calc_likert_statistics(input, revised_filtered_surveys3(),
+                                   "R201_01", "R201_02", "R201_03", "R201_04", "R201_05"),
+            width = "100%",
+        )
 
     @render.plot
     def revised_plot_umsetzung_likert():
         return plot_likert_chart(input, revised_filtered_surveys3(),
-                                 "R201_01", "R201_02", "R201_03", "R201_04", "R201_05",
-                                 width = 0.4)
+                                "R201_01", "R201_02", "R201_03", "R201_04", "R201_05",
+                                width = 0.4)
     
+    @render.ui
+    def revised_wirkung_likert():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("revised_stats_wirkung_likert")
+        else:
+            return ui.output_plot("revised_plot_wirkung_likert", height="450px")
+
+    @render.data_frame
+    def revised_stats_wirkung_likert():
+        return render.DataGrid(
+            calc_likert_statistics(input, revised_filtered_surveys3(),
+                                   "R202_02", "R202_03", "R202_04", "R202_05", "R202_06"),
+            width = "100%",
+        )
+
     @render.plot
     def revised_plot_wirkung_likert():
         return plot_likert_chart(input, revised_filtered_surveys3(),
-                                 "R202_02", "R202_03", "R202_04", "R202_05", "R202_06",
-                                 width = 0.4)
+                                "R202_02", "R202_03", "R202_04", "R202_05", "R202_06",
+                                width = 0.4)
     
+    @render.ui
+    def revised_sonstiges_likert():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("revised_stats_sonstiges_likert")
+        else:
+            return ui.output_plot("revised_plot_sonstiges_likert", height="150px")
+
+    @render.data_frame
+    def revised_stats_sonstiges_likert():
+        return render.DataGrid(
+            calc_likert_statistics(input, revised_filtered_surveys3(),
+                                   "R204_01"),
+            width = "100%",
+        )
+
     @render.plot
     def revised_plot_sonstiges_likert():
         return plot_likert_chart(input, revised_filtered_surveys3(),
-                                 "R204_01",
-                                 width = 0.4)
-    
+                                "R204_01",
+                                width = 0.4)
+
     @render.data_frame
     def revised_df_freitext():
         df = revised_filtered_surveys3()[["R205_01"]].astype(str).copy()

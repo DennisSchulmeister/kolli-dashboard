@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from .utils import src_dir, scale_minus_plus, to_scale_minus_plus, checkbox_to_scale_minus_plus
-from shiny  import reactive
+from shiny  import reactive, render
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
@@ -258,3 +258,47 @@ def plot_multiple_choice_bar_chart(input, data, *vars):
     ax.set_xticklabels(counts.index, rotation=10, ha="right")
     
     return fig
+
+def calc_likert_statistics(input, data, *vars):
+    plot_percentage = input.number_format() == "percent"
+    
+    df = data[[*vars]]
+    df = df.rename(columns={var: get_label(var) for var in vars})
+
+    def _ordinal_median(values: pd.Series):
+        values = values.dropna()
+        if values.empty:
+            return pd.NA
+
+        # Median for an ordinal scale: pick the lower middle category (ceil(n/2)).
+        counts = values.value_counts(dropna=True).reindex(scale_minus_plus, fill_value=0)
+        total = int(counts.sum())
+        if total == 0:
+            return pd.NA
+
+        target_pos = (total + 1) // 2  # 1-indexed lower median position
+        cumulative = counts.cumsum()
+        return cumulative.index[cumulative.ge(target_pos)][0]
+
+    rows = []
+    for question, series in df.items():
+        counts = series.value_counts(dropna=True).reindex(scale_minus_plus, fill_value=0)
+        total = int(counts.sum())
+
+        if plot_percentage:
+            scale_values = {
+                scale_value: (f"{round((int(counts.loc[scale_value]) / total) * 100, 1)}%" if total else pd.NA)
+                for scale_value in scale_minus_plus
+            }
+        else:
+            scale_values = {scale_value: int(counts.loc[scale_value]) for scale_value in scale_minus_plus}
+
+        row = {
+            "Frage": question,
+            **scale_values,
+            "Gesamt": total,
+            "Median": _ordinal_median(series),
+        }
+        rows.append(row)
+
+    return pd.DataFrame(rows, columns=["Frage", *scale_minus_plus, "Gesamt", "Median"])
