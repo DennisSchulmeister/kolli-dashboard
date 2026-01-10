@@ -260,29 +260,88 @@ def revised_server(input, output, session):
     def _():
         m = ui.modal(
             ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
+                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
                 class_="mb-4",
             ),
-            ui.h6(get_label("R205_01")),
-            ui.output_ui("revised_ai_summary_freitext"),
-                title      = "Zusammenfassung der Antworten",
-                easy_close = True,
-                size       = "xl",
-                footer     = None,
+            ui.navset_pill(
+                ui.nav_panel("Erwähnte Themen",
+                    ui.div(
+                        ui.h6(get_label("R205_01")),
+                        ui.output_ui("revised_ai_summary_freitext_topics"),
+                        class_="mt-4",
+                    )
+                ),
+                ui.nav_panel("Interpretation",
+                    ui.div(
+                        ui.h6(get_label("R205_01")),
+                        ui.output_ui("revised_ai_summary_freitext_interpretation"),
+                        class_="mt-4",
+                    )
+                ),
+            ),
+
+            title      = "Zusammenfassung der Antworten",
+            easy_close = True,
+            size       = "xl",
+            footer     = None,
         )
 
         ui.modal_show(m)
 
     @render.ui
-    def revised_ai_summary_freitext():
+    def revised_ai_summary_freitext_topics():
         df      = revised_filtered_surveys3()
         var     = "R205_01"
         label   = get_label(var)
         answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
-        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                    f"{answers}\n\n" \
-                    f"Bitte fasse die Antworten zusammen."
+        question = """
+                   Stelle dir vor, du schreibst ein wissenschaftliches Paper, in dem über die
+                   Forschung zu studentischer Partizipation berichtet wird. Studentische Partizipation
+                   heißt hier, dass die Studierenden Einfluss auf die Vorlesung nehmen dürfen, indem
+                   sie bei relevanten Fragestellungen in die Entscheidung oder Umsetzung eingebunden
+                   werden.
+                   """ \
+                   f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                   f"{answers}\n\n" \
+                   """
+                   Bitte extrahiere die Themen, die in den Antworten vorkommen, aber interpretiere
+                   die Antworten nicht! Stattdessen erstelle eine Tabelle, die jedes Thema mit einem
+                   kurzen Stichwort nennt, die Anzahl der Erwähnungen und ein repräsentatives
+                   Beispiel nennt. Beachte aber, dass die Umfrage in unterschiedlichen Vorlesungen
+                   durchgeführt wurde, die Kategorien aber möglichst allgemeingültig sein sollten.
+                   Fasse daher Kategorien zu einem allgemeinen Oberbegriff zusammen, wenn sie sonst
+                   spezifisch für eine Vorlesung wären.
+                   
+                   Erstelle unterhalb der Tabelle zu Kontrollzwecken eine Auflistung aller Themen
+                   und der Aussagen dazu. Du darfst die Aussagen Abkürzen aber nicht umformulieren!
+                   """
+    
+        return ui.markdown(
+            ai_conversation(ai_message(question))
+        )
+
+    @render.ui
+    def revised_ai_summary_freitext_interpretation():
+        df      = revised_filtered_surveys3()
+        var     = "R205_01"
+        label   = get_label(var)
+        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
+
+        question = """
+                   Stelle dir vor, du schreibst ein wissenschaftliches Paper, in dem über die
+                   Forschung zu studentischer Partizipation berichtet wird. Studentische Partizipation
+                   heißt hier, dass die Studierenden Einfluss auf die Vorlesung nehmen dürfen, indem
+                   sie bei relevanten Fragestellungen in die Entscheidung oder Umsetzung eingebunden
+                   werden.
+                   """ \
+                   f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+                   f"{answers}\n\n" \
+                   """
+                   Bitte fasse die Antworten zusammen und interpretiere sie als Textvorschlag
+                   für die Findings in diesem Paper. Welche Erkenntnisse lassen sich aus den
+                   Antworten ziehen?
+                   """
     
         return ui.markdown(
             ai_conversation(ai_message(question))
