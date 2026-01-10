@@ -23,8 +23,11 @@ def sidebar_ui():
         ),
 
         ui.div(
-            ui.h5("Darstellung"),
-            ui.input_selectize("number_format", "Zahlenformat", selected="absolut", choices={"absolute": "Anzahl", "percent":  "Prozent"}),
+            ui.input_selectize("number_format", "Zahlenformat", selected="absolut", choices={
+                "absolute": "Anzahl",
+                "percent":  "Prozent",
+                "stats":    "Statistik",
+            }),
         ),
 
         ui.div(class_="flex-grow-1"),
@@ -94,6 +97,34 @@ def sidebar_server(input, output, session):
                 class_="mb-4",
             ),
             ui.navset_pill(
+                ui.nav_panel(
+                    "Runden 2 und 3",
+                    ui.div(
+                        ui.navset_card_tab(
+                            ui.nav_panel(
+                                "Umsetzung der Mitgestaltung",
+                                ui_correlation_plus_minus(input, "R201_01", "revised"),
+                                ui_correlation_plus_minus(input, "R201_02", "revised"),
+                                ui_correlation_plus_minus(input, "R201_03", "revised"),
+                                ui_correlation_plus_minus(input, "R201_04", "revised"),
+                                ui_correlation_plus_minus(input, "R201_05", "revised"),
+                            ),
+                            ui.nav_panel(
+                                "Wirkung der Mitgestaltung",
+                                ui_correlation_plus_minus(input, "R202_02", "revised"),
+                                ui_correlation_plus_minus(input, "R202_03", "revised"),
+                                ui_correlation_plus_minus(input, "R202_04", "revised"),
+                                ui_correlation_plus_minus(input, "R202_05", "revised"),
+                                ui_correlation_plus_minus(input, "R202_06", "revised"),
+                            ),
+                            ui.nav_panel(
+                                "Sonstiges",
+                                ui_correlation_plus_minus(input, "R204_01", "revised"),
+                            ),
+                        ),
+                        class_="mt-4",
+                    ),
+                ),
                 ui.nav_menu(
                     "Runde 1",
                     ui.nav_panel(
@@ -203,73 +234,45 @@ def sidebar_server(input, output, session):
                             class_="mt-4",
                         ),
                     ),
+                ),
+                ui.nav_menu(
+                    "Spezialumfragen",
                     ui.nav_panel(
                         "DIRA Lerntagebücher",
                         ui.div(
                             ui.h4("DIRA Lerntagebücher", class_="my-survey-title mb-4"),
-                            ui_correlation_plus_minus(input, "DR06_01", "round1_student-DIRA2_special"),
-                            ui_correlation_plus_minus(input, "DR06_08", "round1_student-DIRA2_special"),
+                            ui_correlation_plus_minus(input, "DR06_01", "special_DIRA_r1"),
+                            ui_correlation_plus_minus(input, "DR06_08", "special_DIRA_r1"),
                             class_="mt-4",
                         ),
                     ),
-                ),
-                ui.nav_menu(
-                    "Runde 2",
-                    ui.nav_panel(
-                        "Studentische Abschlussumfrage",
-                        ui.div(
-                            ui.navset_card_tab(
-                                ui.nav_panel(
-                                    "Umsetzung der Mitgestaltung",
-                                    ui_correlation_plus_minus(input, "R201_01", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R201_02", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R201_03", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R201_04", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R201_05", "round2_student3"),
-                                ),
-                                ui.nav_panel(
-                                    "Wirkung der Mitgestaltung",
-                                    ui_correlation_plus_minus(input, "R202_02", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R202_03", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R202_04", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R202_05", "round2_student3"),
-                                    ui_correlation_plus_minus(input, "R202_06", "round2_student3"),
-                                ),
-                                ui.nav_panel(
-                                    "Sonstiges",
-                                    ui_correlation_plus_minus(input, "R204_01", "round2_student3"),
-                                ),
-                            ),
-                            class_="mt-4",
-                        ),
-                    ),
-                    ui.nav_panel(
+                                        ui.nav_panel(
                         "DESC Partizipation Allgemein",
                         ui.div(
                             ui.h4("DESC Partizipation Allgemein", class_="my-survey-title mb-4"),
                             ui.navset_card_tab(
                                 ui.nav_panel(
                                     "Lernen und Lehren allgemein",
-                                    ui_correlation_plus_minus(input, "AA01_01", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA01_02", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA01_03", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA01_04", "round2_student-DESC_general"),
+                                    ui_correlation_plus_minus(input, "AA01_01", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA01_02", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA01_03", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA01_04", "special_DESC_r2_general"),
                                     ui.input_slider(
                                         "correlation_AA02_01",
                                         get_label("AA02_01"),
                                         min   = -1,
                                         max   = 11,
-                                        value = correlation_filters["round2_student-DESC_general"]["AA02_01"].get(),
+                                        value = correlation_filters["special_DESC_r2_general"]["AA02_01"].get(),
                                         ticks = True,
                                         width = "100%",
                                     ),
                                 ),
                                 ui.nav_panel(
                                     "Mitbestimmung in der Vorlesung",
-                                    ui_correlation_plus_minus(input, "AA03_01", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA03_02", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA03_03", "round2_student-DESC_general"),
-                                    ui_correlation_plus_minus(input, "AA03_04", "round2_student-DESC_general"),
+                                    ui_correlation_plus_minus(input, "AA03_01", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA03_02", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA03_03", "special_DESC_r2_general"),
+                                    ui_correlation_plus_minus(input, "AA03_04", "special_DESC_r2_general"),
                                 ),
                             ),
                             class_="mt-4",
@@ -282,54 +285,23 @@ def sidebar_server(input, output, session):
                             ui.navset_card_tab(
                                 ui.nav_panel(
                                     "Allgemeiner Nutzen",
-                                    ui_correlation_plus_minus(input, "AS01_01", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS01_02", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS01_03", "round2_student-DESC_specific"),
+                                    ui_correlation_plus_minus(input, "AS01_01", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS01_02", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS01_03", "special_DESC_r2_specific"),
                                 ),
                                 ui.nav_panel(
                                     "Tatsächliche Umsetzung",
-                                    ui_correlation_plus_minus(input, "AS02_01", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS02_02", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS02_03", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS02_04", "round2_student-DESC_specific"),
-                                    ui_correlation_plus_minus(input, "AS02_05", "round2_student-DESC_specific"),
+                                    ui_correlation_plus_minus(input, "AS02_01", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS02_02", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS02_03", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS02_04", "special_DESC_r2_specific"),
+                                    ui_correlation_plus_minus(input, "AS02_05", "special_DESC_r2_specific"),
                                 ),
                             ),
                             class_="mt-4",
                         )
                     ),
-                ),
-                ui.nav_menu(
-                    "Runde 3",
-                    ui.nav_panel(
-                        "Studentische Abschlussumfrage",
-                        ui.div(
-                            ui.navset_card_tab(
-                                ui.nav_panel(
-                                    "Umsetzung der Mitgestaltung",
-                                    ui_correlation_plus_minus(input, "R201_01", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R201_02", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R201_03", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R201_04", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R201_05", "round3_student3"),
-                                ),
-                                ui.nav_panel(
-                                    "Wirkung der Mitgestaltung",
-                                    ui_correlation_plus_minus(input, "R202_02", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R202_03", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R202_04", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R202_05", "round3_student3"),
-                                    ui_correlation_plus_minus(input, "R202_06", "round3_student3"),
-                                ),
-                                ui.nav_panel(
-                                    "Sonstiges",
-                                    ui_correlation_plus_minus(input, "R204_01", "round3_student3"),
-                                ),
-                            ),
-                            class_="mt-4",
-                        ),
-                    ),
-                ),
+                )
             ),
             title      = "Filter für Korrelationsanalyse",
             easy_close = True,
@@ -347,7 +319,7 @@ def sidebar_server(input, output, session):
     @reactive.effect
     @reactive.event(input.correlation_AA02_01)
     def _():
-        correlation_filters["round2_student-DESC_general"]["AA02_01"].set(input.correlation_AA02_01())
+        correlation_filters["special_DESC_r2_general"]["AA02_01"].set(input.correlation_AA02_01())
 
     @reactive.effect
     @reactive.event(input.btn_reset_correlation_filter)

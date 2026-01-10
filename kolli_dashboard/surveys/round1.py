@@ -5,8 +5,8 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from .ai_llm import ai_conversation, ai_conversation_available, ai_message
-from .data   import correlation_filters, data, get_label, plot_likert_chart
+from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
+from ..data   import correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
 import faicons
@@ -36,10 +36,6 @@ def round1_ui():
             ui.nav_panel("Vorumfrage", ui.div(round1_survey1_ui(), class_="mt-4")),
             ui.nav_panel("Zwischenumfrage", ui.div(round1_survey2_ui(), class_="mt-4")),
             ui.nav_panel("Abschlussumfrage", ui.div(round1_survey3_ui(), class_="mt-4")),
-            ui.nav_menu(
-                "Spezifische Umfragen",
-                ui.nav_panel("DIRA Lerntagebücher", ui.div(round1_dira2_special_ui(), class_="mt-4")),
-            ),
         ),
     ]
 
@@ -274,53 +270,6 @@ def round1_survey3_ui():
         class_="my-flex-with-gaps",
     )
 
-#------------------------------------------------------------------------------
-# DIRA2 Learning Diaries
-#------------------------------------------------------------------------------
-def round1_dira2_special_ui():
-    return ui.div(
-        ui.h4("DIRA Lerntagebücher / Zwischenumfrage", class_="my-survey-title"),
-        ui.layout_column_wrap(
-            ui.value_box(
-                "Studierende",
-                ui.output_ui("round1_count_students_dira2_special"),
-                showcase = icon_students,
-                theme    = ui.value_box_theme(bg="#f3f7fc", fg="#606060")
-            ),
-            ui.value_box(
-                "Kurse",
-                ui.output_ui("round1_count_courses_dira2_special"),
-                showcase = icon_courses,
-                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#606060")
-            ),
-            ui.value_box(
-                "Lehrende",
-                ui.output_ui("round1_count_teachers_dira2_special"),
-                ui.output_ui("round1_id_teachers_dira2_special"),
-                showcase = icon_teachers,
-                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
-            ),
-            ui.value_box(
-                "Veranstaltungen",
-                ui.output_ui("round1_count_lectures_dira2_special"),
-                ui.output_ui("round1_id_lectures_dira2_special"),
-                showcase = icon_lectures,
-                theme    = ui.value_box_theme(bg="#fbfcf3", fg="#60606")
-            ),
-        ),
-        ui.output_ui("round1_no_data_dira2_special"),
-        ui.output_plot("round1_plot_likert_dira2_special"),
-        ui.div(
-            ui.input_action_button(
-                "btn_round1_ai_summary_dira2_special",
-                "KI-Zusammenfassung",
-                class_ = f"{ai_button_class}",
-            ),
-        ),
-        ui.output_data_frame("round1_df_freetext_dira2_special"),
-        class_="my-flex-with-gaps",
-    )
-
 #==============================================================================
 # SERVER
 #==============================================================================
@@ -332,7 +281,6 @@ def round1_server(input, output, session):
     round1_survey1_server(input, output, session)
     round1_survey2_server(input, output, session)
     round1_survey3_server(input, output, session)
-    round1_dira2_special_server(input, output, session)
 
 #------------------------------------------------------------------------------
 # Semester Start Survey
@@ -890,188 +838,3 @@ def round1_survey3_server(input, output, session):
     @render.ui
     def round1_ai_summary_q5_freetext3():
         return ui.markdown(round1_ai_summary_freetext3("AB12_01"))
-    
-#------------------------------------------------------------------------------
-# DIRA2 Learning Diaries
-#------------------------------------------------------------------------------
-def round1_dira2_special_server(input, output, session):
-    @reactive.calc
-    def round1_filtered_surveys_dira2_special():
-        teachers   = input.teachers() or data["teachers"]
-        lectures   = input.lectures() or data["lectures"]
-        questnnrs  = []
-
-        if "DIRA" in teachers and "PROG1" in lectures:
-            questnnrs = ["R1-DIRA-PROG1-2-special"]
-
-        start_date = pd.to_datetime(input.date_range()[0])
-        end_date   = pd.to_datetime(input.date_range()[1])
-
-        conditions = [
-            (data["answers"]["QUESTNNR"].isin(questnnrs)),
-            (data["answers"]["STARTED"] >= start_date),
-            (data["answers"]["STARTED"] <= end_date),
-        ]
-
-        for var in correlation_filters["round1_student-DIRA2_special"]:
-            selected = correlation_filters["round1_student-DIRA2_special"][var].get()
-            
-            if selected:
-                    conditions.append(data["answers"][var].isin(selected))
-
-        return data["answers"][np.logical_and.reduce(conditions)]
-
-    @render.text
-    def round1_count_students_dira2_special():
-        try:
-            return round1_filtered_surveys_dira2_special().shape[0]
-        except KeyError:
-            return 0
-
-    @render.text
-    def round1_count_courses_dira2_special():
-        try:
-            return round1_filtered_surveys_dira2_special()["STARTED"].dt.date.unique().shape[0]
-        except KeyError:
-            return 0
-    
-    @render.text
-    def round1_count_teachers_dira2_special():
-        try:
-            return round1_filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[1].unique().shape[0]
-        except KeyError:
-            return 0
-    
-    @render.text
-    def round1_id_teachers_dira2_special():
-        try:
-            return ", ".join(round1_filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[1].unique().tolist())
-        except KeyError:
-            return ""
-    
-    @render.text
-    def round1_count_lectures_dira2_special():
-        try:
-            return round1_filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[2].unique().shape[0]
-        except KeyError:
-            return 0
-    
-    @render.text
-    def round1_id_lectures_dira2_special():
-        try:
-            return ", ".join(round1_filtered_surveys_dira2_special()["QUESTNNR"].str.split("-", expand=True)[2].unique().tolist())
-        except KeyError:
-            return ""
-        
-    @render.text
-    def round1_no_data_dira2_special():
-        if round1_filtered_surveys_dira2_special().shape[0] == 0:
-            return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
-    
-    @render.data_frame
-    def round1_df_freetext_dira2_special():
-        try:
-            df = round1_filtered_surveys_dira2_special()[["DR01_01", "DR02_01", "DR03_01", "DR04_01", "DR05_01"]].astype(str).copy()
-            df = df[df[["DR01_01", "DR02_01", "DR03_01", "DR04_01", "DR05_01"]].apply(lambda x: x.str.len() >= 3).any(axis=1)]
-
-            df = df.rename(
-                columns={
-                    "DR01_01": get_label("DR01_01"),
-                    "DR02_01": get_label("DR02_01"),
-                    "DR03_01": get_label("DR03_01"),
-                    "DR04_01": get_label("DR04_01"),
-                    "DR05_01": get_label("DR05_01"),
-                }
-            )
-
-            return render.DataTable(df, width="100%")
-        except KeyError:
-                pass
-    
-    @render.plot
-    def round1_plot_likert_dira2_special():
-        return plot_likert_chart(input, round1_filtered_surveys_dira2_special(), "DR06_01", "DR06_08")
-    
-    @reactive.effect
-    @reactive.event(input.btn_round1_ai_summary_dira2_special)
-    def _():
-        m = ui.modal(
-            ui.panel_well(
-                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
-            ui.navset_pill(
-                ui.nav_panel("Frage 1",
-                    ui.div(
-                        ui.h6(get_label("DR01_01")),
-                        ui.output_ui("round1_ai_summary_q1_dira2_special"),
-                        class_="mt-4",
-                    ),
-                ),
-                ui.nav_panel("Frage 2",
-                    ui.div(
-                        ui.h6(get_label("DR02_01")),
-                        ui.output_ui("round1_ai_summary_q2_dira2_special"),
-                        class_="mt-4",
-                    ),
-                ),
-                ui.nav_panel("Frage 3",
-                    ui.div(
-                        ui.h6(get_label("DR03_01")),
-                        ui.output_ui("round1_ai_summary_q3_dira2_special"),
-                        class_="mt-4",
-                    ),
-                ),
-                ui.nav_panel("Frage 4",
-                    ui.div(
-                        ui.h6(get_label("DR04_01")),
-                        ui.output_ui("round1_ai_summary_q4_dira2_special"),
-                        class_="mt-4",
-                    ),
-                ),
-                ui.nav_panel("Frage 5",
-                    ui.div(
-                        ui.h6(get_label("DR05_01")),
-                        ui.output_ui("round1_ai_summary_q5_dira2_special"),
-                        class_="mt-4",
-                    ),
-                ),
-            ),
-            title      = "Zusammenfassung der Antworten",
-            easy_close = True,
-            size       = "xl",
-            footer     = None,
-        )
-
-        ui.modal_show(m)
-    
-    def round1_ai_summary_dira2_special(var):
-        df = round1_filtered_surveys_dira2_special()
-        label = get_label(var)
-        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
-
-        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                    f"{answers}\n\n" \
-                    f"Bitte fasse die Antworten zusammen."
-    
-        return ai_conversation(ai_message(question))
-
-    @render.ui
-    def round1_ai_summary_q1_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR01_01"))
-    
-    @render.ui
-    def round1_ai_summary_q2_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR02_01"))
-    
-    @render.ui
-    def round1_ai_summary_q3_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR03_01"))
-    
-    @render.ui
-    def round1_ai_summary_q4_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR04_01"))
-    
-    @render.ui
-    def round1_ai_summary_q5_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR05_01"))

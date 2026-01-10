@@ -110,7 +110,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "1.6.0"
+version = "2.0.0"
 
 # Reactive values for correlation filters
 correlation_filters = {
@@ -168,7 +168,7 @@ correlation_filters = {
         "AB14_08": reactive.value([]),
         "AB14_09": reactive.value([]),
     },
-    "round2_student3": {
+    "revised": {
         "R201_01": reactive.value([]),
         "R201_02": reactive.value([]),
         "R201_03": reactive.value([]),
@@ -181,11 +181,11 @@ correlation_filters = {
         "R202_06": reactive.value([]),
         "R204_01": reactive.value([]),
     },
-    "round1_student-DIRA2_special": {
+    "special_DIRA_r1": {
         "DR06_01": reactive.value([]),
         "DR06_08": reactive.value([]),
     },
-    "round2_student-DESC_general": {
+    "special_DESC_r2_general": {
         "AA01_01": reactive.value([]),
         "AA01_02": reactive.value([]),
         "AA01_03": reactive.value([]),
@@ -196,7 +196,7 @@ correlation_filters = {
         "AA03_03": reactive.value([]),
         "AA03_04": reactive.value([]),
     },
-    "round2_student-DESC_specific": {
+    "special_DESC_r2_specific": {
         "AS01_01": reactive.value([]),
         "AS01_02": reactive.value([]),
         "AS01_03": reactive.value([]),
@@ -205,32 +205,6 @@ correlation_filters = {
         "AS02_03": reactive.value([]),
         "AS02_04": reactive.value([]),
         "AS02_05": reactive.value([]),
-    },
-    "round3_student3": {
-        "R201_01": reactive.value([]),
-        "R201_02": reactive.value([]),
-        "R201_03": reactive.value([]),
-        "R201_04": reactive.value([]),
-        "R201_05": reactive.value([]),
-        "R202_02": reactive.value([]),
-        "R202_03": reactive.value([]),
-        "R202_04": reactive.value([]),
-        "R202_05": reactive.value([]),
-        "R202_06": reactive.value([]),
-        "R204_01": reactive.value([]),
-    },
-    "control_group_student3": {
-        "R201_01": reactive.value([]),
-        "R201_02": reactive.value([]),
-        "R201_03": reactive.value([]),
-        "R201_04": reactive.value([]),
-        "R201_05": reactive.value([]),
-        "R202_02": reactive.value([]),
-        "R202_03": reactive.value([]),
-        "R202_04": reactive.value([]),
-        "R202_05": reactive.value([]),
-        "R202_06": reactive.value([]),
-        "R204_01": reactive.value([]),
     },
 }
 
