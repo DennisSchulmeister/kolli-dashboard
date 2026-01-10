@@ -265,6 +265,10 @@ def calc_likert_statistics(input, data, *vars):
     df = data[[*vars]]
     df = df.rename(columns={var: get_label(var) for var in vars})
 
+    ordinal_order = [-2, -1, 0, 1, 2]
+    ordinal_scale = [str(v) for v in ordinal_order]
+    ordinal_map   = {scale_value: ordinal_order[i] for i, scale_value in enumerate(scale_minus_plus)}
+
     def _ordinal_median(values: pd.Series):
         values = values.dropna()
         if values.empty:
@@ -278,27 +282,32 @@ def calc_likert_statistics(input, data, *vars):
 
         target_pos = (total + 1) // 2  # 1-indexed lower median position
         cumulative = counts.cumsum()
-        return cumulative.index[cumulative.ge(target_pos)][0]
+        return ordinal_map[cumulative.index[cumulative.ge(target_pos)][0]]
 
     rows = []
     for question, series in df.items():
-        counts = series.value_counts(dropna=True).reindex(scale_minus_plus, fill_value=0)
-        total = int(counts.sum())
+        ordinal_values = series.map(ordinal_map).dropna()
+        counts = ordinal_values.value_counts(dropna=True).reindex(ordinal_order, fill_value=0)
+        total  = int(counts.sum())
+        mean   = ordinal_values.mean().round(1)
+        stddev = ordinal_values.std() if ordinal_values.shape[0] >= 2 else pd.NA
 
         if plot_percentage:
             scale_values = {
-                scale_value: (f"{round((int(counts.loc[scale_value]) / total) * 100, 1)}%" if total else pd.NA)
-                for scale_value in scale_minus_plus
+                str(scale_value): (f"{round((int(counts.loc[scale_value]) / total) * 100, 1)}%" if total else pd.NA)
+                for scale_value in ordinal_order
             }
         else:
-            scale_values = {scale_value: int(counts.loc[scale_value]) for scale_value in scale_minus_plus}
+            scale_values = {str(scale_value): int(counts.loc[scale_value]) for scale_value in ordinal_order}
 
         row = {
             "Frage": question,
             **scale_values,
-            "Gesamt": total,
-            "Median": _ordinal_median(series),
+            "N": total,
+            "M": mean,
+            "MD": _ordinal_median(series),
+            "SD": (round(float(stddev), 2) if pd.notna(stddev) else pd.NA),
         }
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=["Frage", *scale_minus_plus, "Gesamt", "Median"])
+    return pd.DataFrame(rows, columns=["Frage", *ordinal_scale, "N", "M", "MD", "SD"])

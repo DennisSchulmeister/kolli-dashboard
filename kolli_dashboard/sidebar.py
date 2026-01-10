@@ -33,7 +33,6 @@ def sidebar_ui():
             ui.input_selectize("number_format", "Zahlenformat", selected="absolut", choices={
                 "absolute":   "Anzahl",
                 "percent":    "Prozent",
-                "statistics": "Statistik",
             }),
         ),
 
