@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
-from ..data   import correlation_filters, data, get_label, plot_likert_chart
+from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
 import faicons
@@ -83,7 +83,7 @@ def round1_survey1_ui():
         ui.output_ui("round1_no_data1"),
         ui.layout_columns(
             ui.h5("Vorwissen und Interesse"),
-            ui.output_plot("round1_plot_vorwissen_likert1"),
+            ui.output_ui("round1_vorwissen_likert1"),
             ui.div(
                 ui.output_data_frame("round1_df_vorwissen1"),
                 ui.input_action_button(
@@ -94,7 +94,7 @@ def round1_survey1_ui():
             ),
 
             ui.h5("Mitgestaltung"),
-            ui.output_plot("round1_plot_mitgestaltung_likert1"),
+            ui.output_ui("round1_mitgestaltung_likert1"),
             ui.div(
                 ui.div(get_label("V203_01"), class_="text-center fw-bold"),
                 ui.output_plot("round1_plot_mitgestaltung_hist1"),
@@ -102,7 +102,7 @@ def round1_survey1_ui():
 
             ui.div(
                 ui.h5("Studentisches Engagement"),
-                ui.output_plot("round1_plot_engagement_likert1", height="900px"),
+                ui.output_ui("round1_engagement_likert1"),
             ),
             ui.div(
                 ui.h5("Sonstige Bemerkungen"),
@@ -164,7 +164,7 @@ def round1_survey2_ui():
         ui.output_ui("round1_no_data2"),
         ui.layout_columns(
             ui.h5("Klarheit und Überforderung"),
-            ui.output_plot("round1_plot_klarheit_likert2"),
+            ui.output_ui("round1_klarheit_likert2"),
             ui.div(
                 ui.output_data_frame("round1_df_lehr_lern_innovation2"),
                 ui.input_action_button(
@@ -175,7 +175,7 @@ def round1_survey2_ui():
             ),
 
             ui.h5("Zufriedenheit"),
-            ui.output_plot("round1_plot_zufriedenheit_likert2"),
+            ui.output_ui("round1_zufriedenheit_likert2"),
             ui.div(
                 ui.output_data_frame("round1_df_unterstuetzung2"),
                 ui.input_action_button(
@@ -235,22 +235,22 @@ def round1_survey3_ui():
 
         ui.div(
             ui.h5("Inhalt der Lehrveranstaltung"),
-            ui.output_plot("round1_plot_lv_inhalt_likert3", height="450px"),
+            ui.output_ui("round1_lv_inhalt_likert3"),
         ),
 
         ui.div(
             ui.h5("Studentisches Engagement"),
-            ui.output_plot("round1_plot_engagement_likert3", height="800px"),
+            ui.output_ui("round1_engagement_likert3"),
         ),
 
         ui.div(
             ui.h5("Beurteilung der Partizipation"),
-            ui.output_plot("round1_plot_beurteilung_likert3", height="600px"),
+            ui.output_ui("round1_beurteilung_likert3"),
         ),
 
         ui.div(
             ui.h5("Lernwirksamkeit der Partizipation"),
-            ui.output_plot("round1_plot_lernwirksamkeit_likert3", height="400px"),
+            ui.output_ui("round1_lernwirksamkeit_likert3"),
         ),
 
         ui.div(
@@ -390,14 +390,49 @@ def round1_survey1_server(input, output, session):
 
         return fig
 
+    @render.ui
+    def round1_vorwissen_likert1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_vorwissen_likert1")
+        else:
+            return ui.output_plot("round1_plot_vorwissen_likert1")
+
     @render.plot
     def round1_plot_vorwissen_likert1():
         return plot_likert_chart(input, round1_filtered_surveys1(), "V201_01", "V201_02")
 
+    @render.data_frame
+    def round1_stats_vorwissen_likert1():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys1(), "V201_01", "V201_02"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def round1_mitgestaltung_likert1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_mitgestaltung_likert1")
+        else:
+            return ui.output_plot("round1_plot_mitgestaltung_likert1")
+        
     @render.plot
     def round1_plot_mitgestaltung_likert1():
         return plot_likert_chart(input, round1_filtered_surveys1(), "V204_01", "V204_02")
 
+    @render.data_frame
+    def round1_stats_mitgestaltung_likert1():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys1(), "V204_01", "V204_02"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def round1_engagement_likert1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_engagement_likert1")
+        else:
+            return ui.output_plot("round1_plot_engagement_likert1", height="900px")
+        
     @render.plot
     def round1_plot_engagement_likert1():
         return plot_likert_chart(input, round1_filtered_surveys1(),
@@ -407,6 +442,17 @@ def round1_survey1_server(input, output, session):
                                  "V209_07", "V209_08", "V209_09",
                                  width = 0.4)
 
+    @render.data_frame
+    def round1_stats_engagement_likert1():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys1(),
+                                   "VU03_03", "VU03_04",
+                                   "V209_01", "V209_02", "V209_03",
+                                   "V209_04", "V209_05", "V209_06",
+                                   "V209_07", "V209_08", "V209_09",),
+            width = "100%",
+        )
+    
     @reactive.effect
     @reactive.event(input.btn_round1_ai_summary_vorwissen1)
     def _():
@@ -561,13 +607,41 @@ def round1_survey2_server(input, output, session):
         df = df.rename(columns={"ZW05_01": get_label("ZW05_01")})
         return render.DataGrid(df, width="100%", height="400px")
     
+    @render.ui
+    def round1_klarheit_likert2():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_klarheit_likert2")
+        else:
+            return ui.output_plot("round1_plot_klarheit_likert2")
+        
     @render.plot
     def round1_plot_klarheit_likert2():
         return plot_likert_chart(input, round1_filtered_surveys2(), "ZW04_01", "ZW04_02", "ZW04_03", "ZW04_04", width=0.4)
     
+    @render.data_frame
+    def round1_stats_klarheit_likert2():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys2(), "ZW04_01", "ZW04_02", "ZW04_03", "ZW04_04"),
+            width = "100%",
+        )
+
+    @render.ui
+    def round1_zufriedenheit_likert2():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_zufriedenheit_likert2")
+        else:
+            return ui.output_plot("round1_plot_zufriedenheit_likert2")
+        
     @render.plot
     def round1_plot_zufriedenheit_likert2():
         return plot_likert_chart(input, round1_filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08", width=0.4)
+
+    @render.data_frame
+    def round1_stats_zufriedenheit_likert2():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys2(), "ZW04_05", "ZW04_06", "ZW04_07", "ZW04_08"),
+            width = "100%",
+        )
 
     @reactive.effect
     @reactive.event(input.btn_round1_ai_summary_lehr_lern_innovation2)
@@ -709,12 +783,34 @@ def round1_survey3_server(input, output, session):
         if round1_filtered_surveys3().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
     
+    @render.ui
+    def round1_lv_inhalt_likert3():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_lv_inhalt_likert3")
+        else:
+            return ui.output_plot("round1_plot_lv_inhalt_likert3", height="450px")
+        
     @render.plot
-    def round1_plot_lv_inhalt_likert3():
+    def round1_plot_lv_inhalt_likert3(): #450px
         return plot_likert_chart(input, round1_filtered_surveys3(),
                                  "AB03_01", "AB03_02", "AB03_03", "AB03_04", "AB03_05",
                                  width = 0.4)
     
+    @render.data_frame
+    def round1_stats_lv_inhalt_likert3():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys3(),
+                                   "AB03_01", "AB03_02", "AB03_03", "AB03_04", "AB03_05"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def round1_engagement_likert3():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_engagement_likert3")
+        else:
+            return ui.output_plot("round1_plot_engagement_likert3", height="800px")
+        
     @render.plot
     def round1_plot_engagement_likert3():
         return plot_likert_chart(input, round1_filtered_surveys3(),
@@ -722,6 +818,22 @@ def round1_survey3_server(input, output, session):
                                  "AB07_05", "AB07_06", "AB07_07", "AB07_08", "AB07_09",
                                  width = 0.4)
     
+    @render.data_frame
+    def round1_stats_engagement_likert3():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys3(),
+                                   "AB07_01", "AB07_02", "AB07_03", "AB07_04",
+                                   "AB07_05", "AB07_06", "AB07_07", "AB07_08", "AB07_09",),
+            width = "100%",
+        )
+
+    @render.ui
+    def round1_beurteilung_likert3():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_beurteilung_likert3")
+        else:
+            return ui.output_plot("round1_plot_beurteilung_likert3", height="600px")
+        
     @render.plot
     def round1_plot_beurteilung_likert3():
         return plot_likert_chart(input, round1_filtered_surveys3(),
@@ -729,12 +841,36 @@ def round1_survey3_server(input, output, session):
                                  "AB09_04", "AB09_05", "AB09_06", "AB09_07",
                                  width = 0.4)
     
+    @render.data_frame
+    def round1_stats_beurteilung_likert3():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys3(),
+                                   "AB09_01", "AB09_02", "AB09_03",
+                                   "AB09_04", "AB09_05", "AB09_06", "AB09_07",),
+            width = "100%",
+        )
+
+    @render.ui
+    def round1_lernwirksamkeit_likert3():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_lernwirksamkeit_likert3")
+        else:
+            return ui.output_plot("round1_plot_lernwirksamkeit_likert3", height="400px")
+        
     @render.plot
     def round1_plot_lernwirksamkeit_likert3():
         return plot_likert_chart(input, round1_filtered_surveys3(),
                                  "AB14_06", "AB14_07", "AB14_08", "AB14_09",
                                  width = 0.4)
 
+    @render.data_frame
+    def round1_stats_lernwirksamkeit_likert3():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys3(),
+                                   "AB14_06", "AB14_07", "AB14_08", "AB14_09",),
+            width = "100%",
+        )
+    
     @render.data_frame
     def round1_df_freetext3():
         try:

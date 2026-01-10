@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
-from ..data   import correlation_filters, data, get_label, plot_likert_chart
+from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
 import faicons
@@ -80,7 +80,7 @@ def special_dira_r1_special_ui():
             ),
         ),
         ui.output_ui("round1_no_data_dira2_special"),
-        ui.output_plot("round1_plot_likert_dira2_special"),
+        ui.output_ui("round1_likert_dira2_special"),
         ui.div(
             ui.input_action_button(
                 "btn_round1_ai_summary_dira2_special",
@@ -131,14 +131,14 @@ def special_desc_r2_general_ui():
 
         ui.layout_columns(
             ui.h5("Lernen und Lehren allgemein"),
-            ui.output_plot("special_plot_haltung_likert_desc_general"),
+            ui.output_ui("special_haltung_likert_desc_general"),
             ui.div(
                 ui.div(get_label("AA02_01"), class_="text-center fw-bold"),
                 ui.output_plot("special_plot_haltung_hist_desc_general"),
             ),
 
             ui.h5("Mitbestimmung in der Vorlesung"),
-            ui.output_plot("special_plot_mitbestimmung_likert_desc_general"),
+            ui.output_ui("special_mitbestimmung_likert_desc_general"),
             ui.output_data_frame("special_df_freitext_desc_general"),
             
             col_widths = (12, 8, 4, 12, 8, 4),
@@ -185,10 +185,10 @@ def special_desc_r2_objectives_ui():
 
         ui.layout_columns(
             ui.h5("Allgemeiner Nutzen"),
-            ui.output_plot("special_plot_nutzen_likert_desc_objectives", height="330px"),
+            ui.output_ui("special_nutzen_likert_desc_objectives"),
 
             ui.h5("Tatsächliche Umsetzung"),
-            ui.output_plot("special_plot_umsetzung_likert_desc_objectives", height="500px"),
+            ui.output_ui("special_umsetzung_likert_desc_objectives"),
 
             ui.div(
                 ui.h5("Freitextantworten"),
@@ -238,10 +238,10 @@ def special_desc_r2_assessment_ui():
 
         ui.layout_columns(
             ui.h5("Allgemeiner Nutzen"),
-            ui.output_plot("special_plot_nutzen_likert_desc_assessment", height="330px"),
+            ui.output_ui("special_nutzen_likert_desc_assessment"),
 
             ui.h5("Tatsächliche Umsetzung"),
-            ui.output_plot("special_plot_umsetzung_likert_desc_assessment", height="500px"),
+            ui.output_ui("special_umsetzung_likert_desc_assessment"),
 
             ui.div(
                 ui.h5("Freitextantworten"),
@@ -291,10 +291,10 @@ def special_desc_r2_reflection_ui():
 
         ui.layout_columns(
             ui.h5("Allgemeiner Nutzen"),
-            ui.output_plot("special_plot_nutzen_likert_desc_reflection", height="330px"),
+            ui.output_ui("special_nutzen_likert_desc_reflection"),
 
             ui.h5("Tatsächliche Umsetzung"),
-            ui.output_plot("special_plot_umsetzung_likert_desc_reflection", height="500px"),
+            ui.output_ui("special_umsetzung_likert_desc_reflection"),
 
             ui.div(
                 ui.h5("Freitextantworten"),
@@ -345,11 +345,11 @@ def special_learning_roomui():
             ui.h5("Raumnutzung"),
 
             ui.h6(get_label("IL03")),
-            ui.output_plot("plot_usage_likert_lr1", height="400px"),
+            ui.output_ui("usage_likert_lr1"),
             ui.output_data_frame("df_usage_freetext_lr1"),
             
             ui.h6(get_label("IL05")),
-            ui.output_plot("plot_imagination_likert_lr1", height="400px"),
+            ui.output_ui("imagination_likert_lr1"),
             ui.output_data_frame("df_imagination_freetext_lr1"),
             
             col_widths = (12, 12, 8, 4, 12, 8, 4),
@@ -359,15 +359,15 @@ def special_learning_roomui():
             ui.h5("Raumgestaltung"),
 
             ui.h6(get_label("IL06")),
-            ui.output_plot("plot_aspects_likert_lr1", height="350px"),
+            ui.output_ui("aspects_likert_lr1"),
             ui.output_data_frame("df_aspects_freetext_lr1"),
 
             ui.h6(get_label("IL08")),
-            ui.output_plot("plot_colors_likert_lr1", height="280px"),
+            ui.output_ui("colors_likert_lr1"),
             ui.output_data_frame("df_colors_freetext_lr1"),
 
             ui.h6(get_label("IL09")),
-            ui.output_plot("plot_accessibility_likert_lr1", height="350px"),
+            ui.output_ui("accessibility_likert_lr1"),
             ui.output_data_frame("df_accessibility_freetext_lr1"),
 
             col_widths = (12, 12, 8, 4, 12, 8, 4, 12, 8, 4),
@@ -377,15 +377,15 @@ def special_learning_roomui():
             ui.h5("Raumausstattung"),
 
             ui.h6(get_label("IL10")),
-            ui.output_plot("plot_digital_tools_likert_lr1", height="480px"),
+            ui.output_ui("digital_tools_likert_lr1"),
             ui.output_data_frame("df_digital_tools_freetext_lr1"),
 
             ui.h6(get_label("IL12")),
-            ui.output_plot("plot_digital_ressources_likert_lr1", height="280px"),
+            ui.output_ui("digital_ressources_likert_lr1"),
             ui.output_data_frame("df_digital_ressources_freetext_lr1"),
 
             ui.h6(get_label("IL13")),
-            ui.output_plot("plot_other_equipment_likert_lr1", height="880px"),
+            ui.output_ui("other_equipment_likert_lr1"),
             ui.output_data_frame("df_other_equipment_freetext_lr1"),
 
             col_widths = (12, 12, 8, 4, 12, 8, 4, 12, 8, 4),
@@ -520,10 +520,24 @@ def special_dira_r1_special_server(input, output, session):
             return render.DataTable(df, width="100%")
         except KeyError:
                 pass
-    
+
+    @render.ui
+    def round1_likert_dira2_special():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("round1_stats_likert_dira2_special")
+        else:
+            return ui.output_plot("round1_plot_likert_dira2_special")
+        
     @render.plot
     def round1_plot_likert_dira2_special():
         return plot_likert_chart(input, round1_filtered_surveys_dira2_special(), "DR06_01", "DR06_08")
+    
+    @render.data_frame
+    def round1_stats_likert_dira2_special():
+        return render.DataGrid(
+            calc_likert_statistics(input, round1_filtered_surveys_dira2_special(), "DR06_01", "DR06_08"),
+            width = "100%",
+        )
     
     @reactive.effect
     @reactive.event(input.btn_round1_ai_summary_dira2_special)
@@ -683,12 +697,27 @@ def special_desc_r2_general_server(input, output, session):
         if special_filtered_surveys_desc_general().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
 
+    @render.ui
+    def special_haltung_likert_desc_general():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_haltung_likert_desc_general")
+        else:
+            return ui.output_plot("special_plot_haltung_likert_desc_general")
+
     @render.plot
     def special_plot_haltung_likert_desc_general():
         return plot_likert_chart(input, special_filtered_surveys_desc_general(),
                                  "AA01_01", "AA01_02", "AA01_03", "AA01_04",
                                  width = 0.4)
 
+    @render.data_frame
+    def special_stats_haltung_likert_desc_general():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_general(), 
+                                   "AA01_01", "AA01_02", "AA01_03", "AA01_04"),
+            width = "100%",
+        )
+    
     @render.plot
     def special_plot_haltung_hist_desc_general():
         fig, ax = plt.subplots()
@@ -705,11 +734,26 @@ def special_desc_r2_general_server(input, output, session):
 
         return fig
     
+    @render.ui
+    def special_mitbestimmung_likert_desc_general():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_mitbestimmung_likert_desc_general")
+        else:
+            return ui.output_plot("special_plot_mitbestimmung_likert_desc_general")
+        
     @render.plot
     def special_plot_mitbestimmung_likert_desc_general():
         return plot_likert_chart(input, special_filtered_surveys_desc_general(),
                                  "AA03_01", "AA03_02", "AA03_03", "AA03_04",
                                  width = 0.4)
+    
+    @render.data_frame
+    def special_stats_mitbestimmung_likert_desc_general():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_general(), 
+                                   "AA03_01", "AA03_02", "AA03_03", "AA03_04"),
+            width = "100%",
+        )
     
     @render.data_frame
     def special_df_freitext_desc_general():
@@ -788,18 +832,48 @@ def special_desc_r2_objectives_server(input, output, session):
         if special_filtered_surveys_desc_objectives().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
 
+    @render.ui
+    def special_nutzen_likert_desc_objectives():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_nutzen_likert_desc_objectives")
+        else:
+            return ui.output_plot("special_plot_nutzen_likert_desc_objectives", height="330px")
+        
     @render.plot
-    def special_plot_nutzen_likert_desc_objectives():
+    def special_plot_nutzen_likert_desc_objectives(): #330px
         return plot_likert_chart(input, special_filtered_surveys_desc_objectives(),
                                  "AS01_01", "AS01_02", "AS01_03",
                                  width = 0.4)
 
+    @render.data_frame
+    def special_stats_nutzen_likert_desc_objectives():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_objectives(), 
+                                   "AS01_01", "AS01_02", "AS01_03"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def special_umsetzung_likert_desc_objectives():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_umsetzung_likert_desc_objectives")
+        else:
+            return ui.output_plot("special_plot_umsetzung_likert_desc_objectives", height="500px")
+        
     @render.plot
-    def special_plot_umsetzung_likert_desc_objectives():
+    def special_plot_umsetzung_likert_desc_objectives(): #500px
         return plot_likert_chart(input, special_filtered_surveys_desc_objectives(),
                                  "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05",
                                  width = 0.4)
 
+    @render.data_frame
+    def special_stats_umsetzung_likert_desc_objectives():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_objectives(), 
+                                   "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def special_df_freitext_desc_objectives():
         try:
@@ -887,17 +961,47 @@ def special_desc_r2_assessment_server(input, output, session):
         if special_filtered_surveys_desc_assessment().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
 
+    @render.ui
+    def special_nutzen_likert_desc_assessment():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_nutzen_likert_desc_assessment")
+        else:
+            return ui.output_plot("special_plot_nutzen_likert_desc_assessment", height="300px")
+
     @render.plot
     def special_plot_nutzen_likert_desc_assessment():
         return plot_likert_chart(input, special_filtered_surveys_desc_assessment(),
                                  "AS01_01", "AS01_02", "AS01_03",
                                  width = 0.4)
 
+    @render.data_frame
+    def special_stats_nutzen_likert_desc_assessment():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_assessment(), 
+                                   "AS01_01", "AS01_02", "AS01_03"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def special_umsetzung_likert_desc_assessment():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_umsetzung_likert_desc_assessment")
+        else:
+            return ui.output_plot("special_plot_umsetzung_likert_desc_assessment", height="500px")
+        
     @render.plot
     def special_plot_umsetzung_likert_desc_assessment():
         return plot_likert_chart(input, special_filtered_surveys_desc_assessment(),
                                  "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05",
                                  width = 0.4)
+    
+    @render.data_frame
+    def special_stats_umsetzung_likert_desc_assessment():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_assessment(), 
+                                   "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05"),
+            width = "100%",
+        )
     
     @render.data_frame
     def special_df_freitext_desc_assessment():
@@ -986,17 +1090,47 @@ def special_desc_r2_reflection_server(input, output, session):
         if special_filtered_surveys_desc_reflection().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
 
+    @render.ui
+    def special_nutzen_likert_desc_reflection():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_nutzen_likert_desc_reflection")
+        else:
+            return ui.output_plot("special_plot_nutzen_likert_desc_reflection", height="300px")
+        
     @render.plot
     def special_plot_nutzen_likert_desc_reflection():
         return plot_likert_chart(input, special_filtered_surveys_desc_reflection(),
                                  "AS01_01", "AS01_02", "AS01_03",
                                  width = 0.4)
 
+    @render.data_frame
+    def special_stats_nutzen_likert_desc_reflection():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_reflection(), 
+                                   "AS01_01", "AS01_02", "AS01_03"),
+            width = "100%",
+        )
+    
+    @render.ui
+    def special_umsetzung_likert_desc_reflection():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("special_stats_umsetzung_likert_desc_reflection")
+        else:
+            return ui.output_plot("special_plot_umsetzung_likert_desc_reflection", height="500px")
+        
     @render.plot
     def special_plot_umsetzung_likert_desc_reflection():
         return plot_likert_chart(input, special_filtered_surveys_desc_reflection(),
                                  "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05",
                                  width = 0.4)
+    
+    @render.data_frame
+    def special_stats_umsetzung_likert_desc_reflection():
+        return render.DataGrid(
+            calc_likert_statistics(input, special_filtered_surveys_desc_reflection(), 
+                                   "AS02_01", "AS02_02", "AS02_03", "AS02_04", "AS02_05"),
+            width = "100%",
+        )
     
     @render.data_frame
     def special_df_freitext_desc_reflection():
@@ -1059,10 +1193,24 @@ def special_learning_roomserver(input, output, session):
         if filtered_surveys_lr1().shape[0] == 0:
             return "Es liegen keine Umfrageergebnisse für die gewählten Filterkriterien vor."
 
+    @render.ui
+    def usage_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_usage_likert_lr1")
+        else:
+            return ui.output_plot("plot_usage_likert_lr1", height="400px")
+
     @render.plot
     def plot_usage_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL03_01", "IL03_02", "IL03_03", "IL03_04", "IL03_05", width=0.5)
 
+    @render.data_frame
+    def stats_usage_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL03_01", "IL03_02", "IL03_03", "IL03_04", "IL03_05"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_usage_freetext_lr1():
         df = filtered_surveys_lr1()[["IL04_06"]].astype(str).copy()
@@ -1070,10 +1218,24 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL04_06": get_label("IL04_06")})
         return render.DataGrid(df, width="100%")
     
+    @render.ui
+    def imagination_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_imagination_likert_lr1")
+        else:
+            return ui.output_plot("plot_imagination_likert_lr1", height="400px")
+        
     @render.plot
-    def plot_imagination_likert_lr1():
+    def plot_imagination_likert_lr1(): #400px
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL05_01", "IL05_02", "IL05_03", "IL05_04", "IL05_05", width=0.5)
 
+    @render.data_frame
+    def stats_imagination_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL05_01", "IL05_02", "IL05_03", "IL05_04", "IL05_05"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_imagination_freetext_lr1():
         df = filtered_surveys_lr1()[["IL16_06"]].astype(str).copy()
@@ -1081,10 +1243,24 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL16_06": get_label("IL16_06")})
         return render.DataGrid(df, width="100%")
     
+    @render.ui
+    def aspects_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_aspects_likert_lr1")
+        else:
+            return ui.output_plot("plot_aspects_likert_lr1", height="350px")
+        
     @render.plot
     def plot_aspects_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL06_01", "IL06_02", "IL06_03", "IL06_04", width=0.5)
 
+    @render.data_frame
+    def stats_aspects_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL06_01", "IL06_02", "IL06_03", "IL06_04"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_aspects_freetext_lr1():
         df = filtered_surveys_lr1()[["IL07_01"]].astype(str).copy()
@@ -1092,21 +1268,49 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL07_01": get_label("IL07_01")})
         return render.DataGrid(df, width="100%")
     
+    @render.ui
+    def colors_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_colors_likert_lr1")
+        else:
+            return ui.output_plot("plot_colors_likert_lr1", height="280px")
+        
     @render.plot
     def plot_colors_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL08_01", "IL08_02", "IL08_03", width=0.5)
 
+    @render.data_frame
+    def stats_colors_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL08_01", "IL08_02", "IL08_03"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_colors_freetext_lr1():
         df = filtered_surveys_lr1()[["IL15_06"]].astype(str).copy()
         df = df[df["IL15_06"].apply(lambda x: len(x.strip()) > 3)]
         df = df.rename(columns={"IL15_06": get_label("IL15_06")})
         return render.DataGrid(df, width="100%")
+
+    @render.ui
+    def accessibility_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_accessibility_likert_lr1")
+        else:
+            return ui.output_plot("plot_accessibility_likert_lr1", height="350px")
         
     @render.plot
     def plot_accessibility_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL09_01", "IL09_02", "IL09_03", "IL09_04", width=0.5)
 
+    @render.data_frame
+    def stats_accessibility_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL09_01", "IL09_02", "IL09_03", "IL09_04"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_accessibility_freetext_lr1():
         df = filtered_surveys_lr1()[["IL17_06"]].astype(str).copy()
@@ -1114,11 +1318,24 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL17_06": get_label("IL17_06")})
         return render.DataGrid(df, width="100%")
     
+    @render.ui
+    def digital_tools_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_digital_tools_likert_lr1")
+        else:
+            return ui.output_plot("plot_digital_tools_likert_lr1", height="480px")
 
     @render.plot
     def plot_digital_tools_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL10_01", "IL10_02", "IL10_03", "IL10_04", "IL10_05", "IL10_06", width=0.5)
 
+    @render.data_frame
+    def stats_digital_tools_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL10_01", "IL10_02", "IL10_03", "IL10_04", "IL10_05", "IL10_06"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_digital_tools_freetext_lr1():
         df = filtered_surveys_lr1()[["IL11_01"]].astype(str).copy()
@@ -1126,10 +1343,24 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL11_01": get_label("IL11_01")})
         return render.DataGrid(df, width="100%")
 
+    @render.ui
+    def digital_ressources_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_digital_ressources_likert_lr1")
+        else:
+            return ui.output_plot("plot_digital_ressources_likert_lr1", height="280px")
+
     @render.plot
     def plot_digital_ressources_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), "IL12_01", "IL12_02", "IL12_03", width=0.5)
 
+    @render.data_frame
+    def stats_digital_ressources_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), "IL12_01", "IL12_02", "IL12_03"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_digital_ressources_freetext_lr1():
         df = filtered_surveys_lr1()[["IL18_06"]].astype(str).copy()
@@ -1137,6 +1368,13 @@ def special_learning_roomserver(input, output, session):
         df = df.rename(columns={"IL18_06": get_label("IL18_06")})
         return render.DataGrid(df, width="100%")
     
+    @render.ui
+    def other_equipment_likert_lr1():
+        if input.display_type() == "stat":
+            return ui.output_data_frame("stats_other_equipment_likert_lr1")
+        else:
+            return ui.output_plot("plot_other_equipment_likert_lr1", height="880px")
+
     @render.plot
     def plot_other_equipment_likert_lr1():
         return plot_likert_chart(input, filtered_surveys_lr1(), 
@@ -1144,6 +1382,15 @@ def special_learning_roomserver(input, output, session):
                                  "IL13_07", "IL13_08", "IL13_09", "IL13_10", "IL13_11",
                                  width=0.5)
 
+    @render.data_frame
+    def stats_other_equipment_likert_lr1():
+        return render.DataGrid(
+            calc_likert_statistics(input, filtered_surveys_lr1(), 
+                                   "IL13_01", "IL13_02", "IL13_03", "IL13_04", "IL13_05", "IL13_06",
+                                   "IL13_07", "IL13_08", "IL13_09", "IL13_10", "IL13_11"),
+            width = "100%",
+        )
+    
     @render.data_frame
     def df_other_equipment_freetext_lr1():
         df = pd.DataFrame({"IL19_06": []})  # Missing in data export?!
