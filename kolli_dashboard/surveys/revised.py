@@ -5,13 +5,31 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from ..ai_llm import ai_conversation_available, cancel_ai_stream, start_ai_stream
-from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
-from shiny    import reactive, render, ui
+import asyncio
+
+from ..ai_llm import (
+    ai_conversation_available,
+    ai_conversation_json,
+    ai_message,
+    cancel_ai_stream,
+    start_ai_stream,
+    start_ai_task,
+)
+
+from ..data import (
+    calc_likert_statistics,
+    correlation_filters,
+    data,
+    get_label,
+    plot_likert_chart
+)
+
+from shiny import reactive, render, ui
 
 import faicons
 import pandas as pd
 import numpy as np
+import html
 
 #==============================================================================
 # UI Definition
@@ -116,14 +134,14 @@ def revised_ui():
 #------------------------------------------------------------------------------
 def revised_server(input, output, session):
     revised_ai_summary_freitext_topics_md = reactive.Value("")
-    revised_ai_summary_freitext_interpretation_md = reactive.Value("")
+    revised_ai_summary_freitext_summary_md = reactive.Value("")
 
     @reactive.calc
     def revised_filtered_surveys3():
         cancel_ai_stream("revised_topics")
         cancel_ai_stream("revised_interpretation")
         revised_ai_summary_freitext_topics_md.set("")
-        revised_ai_summary_freitext_interpretation_md.set("")
+        revised_ai_summary_freitext_summary_md.set("")
 
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
@@ -268,17 +286,15 @@ def revised_server(input, output, session):
     def _():
         m = ui.modal(
             ui.navset_pill(
-                ui.nav_panel("Erwähnte Themen",
+                ui.nav_panel("Zusammenfassung",
                     ui.div(
-                        ui.h6(get_label("R205_01")),
-                        ui.output_ui("revised_ai_summary_freitext_topics"),
+                        ui.output_ui("revised_ai_summary_freitext_summary"),
                         class_="mt-4",
                     )
                 ),
-                ui.nav_panel("Interpretation",
+                ui.nav_panel("Kategorisierung",
                     ui.div(
-                        ui.h6(get_label("R205_01")),
-                        ui.output_ui("revised_ai_summary_freitext_interpretation"),
+                        ui.output_ui("revised_ai_summary_freitext_topics"),
                         class_="mt-4",
                     )
                 ),
@@ -299,70 +315,349 @@ def revised_server(input, output, session):
     @reactive.effect
     @reactive.event(input.btn_revised_ai_summary_freitext)
     def _revised_ai_summary_freitext_topics_stream():
-        df      = revised_filtered_surveys3()
-        var     = "R205_01"
-        label   = get_label(var)
-        answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
+        if revised_ai_summary_freitext_topics_md.get():
+            return
 
-        question = """
-                   Stelle dir vor, du schreibst ein wissenschaftliches Paper, in dem über die
-                   Forschung zu studentischer Partizipation berichtet wird. Studentische Partizipation
-                   heißt hier, dass die Studierenden Einfluss auf die Vorlesung nehmen dürfen, indem
-                   sie bei relevanten Fragestellungen in die Entscheidung oder Umsetzung eingebunden
-                   werden.
-                   """ \
-                   f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                   f"{answers}\n\n" \
-                   """
-                   Bitte extrahiere die Themen, die in den Antworten vorkommen, aber interpretiere
-                   die Antworten nicht! Stattdessen erstelle eine Tabelle, die jedes Thema mit einem
-                   kurzen Stichwort nennt, die Anzahl der Erwähnungen und ein repräsentatives
-                   Beispiel nennt. Beachte aber, dass die Umfrage in unterschiedlichen Vorlesungen
-                   durchgeführt wurde, die Kategorien aber möglichst allgemeingültig sein sollten.
-                   Fasse daher Kategorien zu einem allgemeinen Oberbegriff zusammen, wenn sie sonst
-                   spezifisch für eine Vorlesung wären.
-                   
-                   Erstelle unterhalb der Tabelle zu Kontrollzwecken eine Auflistung aller Themen
-                   und der Aussagen dazu. Du darfst die Aussagen Abkürzen aber nicht umformulieren!
-                   """
+        df    = revised_filtered_surveys3()
+        var   = "R205_01"
+        label = get_label(var)
 
-        if not revised_ai_summary_freitext_topics_md.get():
-            start_ai_stream(
-                question=question,
-                target_md=revised_ai_summary_freitext_topics_md,
-                task_name="revised_topics",
-            )
+        # Filter usable answers once, then build a stable mapping
+        # QUESTNNR -> [answers] (keeps original row order).
+        answers_df = df[["QUESTNNR", var]].dropna(subset=[var])
+        answers_df = answers_df.assign(
+            _questnnr=answers_df["QUESTNNR"].astype(str),
+            _answer=answers_df[var].astype(str).str.strip(),
+        )
+        answers_df = answers_df[answers_df["_answer"].str.len() > 3]
+
+        questnnr_to_answers: dict[str, list[str]] = (
+            answers_df.groupby("_questnnr", sort=False)["_answer"].apply(list).to_dict()
+        )
+
+        # Stable, unique answer list (first occurrence order in df).
+        raw_answers: list[str] = answers_df["_answer"].drop_duplicates().tolist()
+
+        # For each answer text, show all questionnaire IDs it appears in.
+        answer_to_questnnrs: dict[str, list[str]] = {}
+        for questnnr, answers in questnnr_to_answers.items():
+            for answer_text in dict.fromkeys(answers):
+                answer_to_questnnrs.setdefault(answer_text, []).append(questnnr)
+
+        raw_answer_questnnrs: list[str] = [
+            ", ".join(sorted(set(answer_to_questnnrs.get(a, [])))) for a in raw_answers
+        ]
+
+        if not raw_answers:
+            revised_ai_summary_freitext_topics_md.set("Es liegen keine verwertbaren Freitextantworten vor.")
+            return
+
+        def _render_progress_md(
+            *,
+            step:     str = "",
+            topics:   list[str]      | None = None,
+            counts:   dict[str, int] | None = None,
+            examples: dict[str, str] | None = None,
+            matches:  dict[str, list[int]] | None = None,
+        ) -> str:
+            topics   = topics or []
+            counts   = counts or {}
+            examples = examples or {}
+
+            lines: list[str] = []
+
+            if step:
+                lines += [
+                    f"<span class='text-secondary'>{step}</span> <br>",
+                    "",
+                ]
+
+            if topics:
+                lines += [
+                    "<table class='table'>"
+                    "    <thead>"
+                    "        </tr>"
+                    "            <th scope='col'>Kategorie</th>"
+                    "            <th scope='col'>Anzahl</th>"
+                    "            <th scope='col'>Beispiel</th>"
+                    "        </tr>"
+                    "    </thead>"
+                    "    <tbody class='table-group-divider'>"
+                ]
+
+                for topic in topics:
+                    n           = counts.get(topic) or 0
+                    example     = examples.get(topic, "")
+                    example_str = "" if not example else example
+
+                    lines += [
+                        "<tr>",
+                        f"    <td>{topic}</td>",
+                        f"    <td>{n}</td>",
+                        f"    <td>{html.escape(example_str)}</td>",
+                        "</tr>",
+                    ]
+                
+                lines += [
+                    "    </tbody>",
+                    "</table>"
+                ]
+            
+            if matches:
+                for topic in topics:
+                    count = counts.get(topic, 0)
+                    if not count:
+                        continue
+
+                    lines += [
+                        "<table class='table'>"
+                        "    <thead>"
+                        "        </tr>"
+                        f"           <th scope='col'>{topic} (N={count})</th>"
+                        "            <th scope='col'>Fragebogen</th>"
+                        "        </tr>"
+                        "    </thead>"
+                        "    <tbody class='table-group-divider'>"
+                    ]
+
+                    for n in matches.get(topic, []):
+                        answer_text = raw_answers[n - 1]
+                        questnnr = raw_answer_questnnrs[n - 1]
+                        lines += [
+                            "<tr>",
+                            f"    <td>{html.escape(answer_text)}</td>",
+                            f"    <td>{html.escape(questnnr)}</td>",
+                            "</tr>",
+                        ]
+
+                    lines += [
+                        "    </tbody>",
+                        "</table>"
+                    ]
+
+            result = "\n".join(lines)
+            return result
+
+        async def _run():
+            try:
+                # Step 1: Extract topics
+                revised_ai_summary_freitext_topics_md.set(
+                    _render_progress_md(step="Schritt 1/3: Extrahiere Themen …")
+                )
+                await reactive.flush()
+
+                numbered_answers = "\n".join([f"{i+1}. {a}" for i, a in enumerate(raw_answers)])
+                topics = ["Positive Eindrücke", "Verbesserungsvorschläge", "Sonstige Bemerkungen"]
+
+#                 topic_result = await ai_conversation_json(
+#                     ai_message(
+#                         "Stelle dir vor, du schreibst ein wissenschaftliches Paper zur Forschung "
+#                         "über studentische Partizipation (Studierende nehmen Einfluss auf die Vorlesung, "
+#                         "indem sie bei relevanten Fragestellungen in Entscheidung oder Umsetzung eingebunden werden).\n\n"
+#                         f"Auf die Frage '{label}' liegen folgende Freitextantworten vor (nummeriert):\n\n"
+#                         f"{numbered_answers}\n\n"
+#                         "Aufgabe: Extrahiere eine Liste von Themen, die in den Antworten vorkommen.\n"
+#                         "Wichtig: Verwende generische, allgemein gültige Themen (nicht kurs-/dozenten-spezifisch). "
+#                         "Fasse kurs-/veranstaltungsspezifische Formulierungen zu allgemeinen Oberbegriffen zusammen.\n"
+#                         "Gib möglichst wenig Themen zurück (lieber zusammenfassen als zu granular werden).\n"
+#                         "Verwende kurze Bezeichnungen (ca. 3 Wörter) für die Themen.\n"
+#                         "Antworte ausschließlich als JSON gemäß Schema."
+#                     ),
+#                     json_schema = {
+#                         "name": "topics_schema",
+#                         "schema": {
+#                             "type": "object",
+#                             "properties": {
+#                                 "topics": {
+#                                     "type": "array",
+#                                     "items": {
+#                                         "type": "string",
+#                                     },
+#                                 }
+#                             },
+#                             "required": ["topics"],
+#                             "additionalProperties": False,
+#                         },
+#                     },
+#                 )
+# 
+#                 topics: list[str] = []
+# 
+#                 if isinstance(topic_result, dict):
+#                     topics = topic_result.get("topics") or [] # type: ignore
+# 
+#                 if not topics:
+#                     revised_ai_summary_freitext_topics_md.set("Keine Themen erkannt!")
+#                     await reactive.flush()
+#                     await asyncio.sleep(0)
+#                     return
+
+                # Step 2: Find answers for each topic
+                counts: dict[str, int] = {}
+                examples: dict[str, str] = {}
+                matches_by_topic: dict[str, list[int]] = {}
+
+                revised_ai_summary_freitext_topics_md.set(
+                    _render_progress_md(
+                        step   = "Ordne Antworten zu",
+                        topics = topics,
+                    )
+                )
+                await reactive.flush()
+                await asyncio.sleep(0)
+
+                for answer_idx, answer_text in enumerate(raw_answers, start=1):
+                    step_md = _render_progress_md(
+                        step     = f"Ordne Antwort {answer_idx}/{len(raw_answers)} zu",
+                        topics   = topics,
+                        counts   = counts,
+                        examples = examples,
+                    )
+                    revised_ai_summary_freitext_topics_md.set(step_md)
+                    await reactive.flush()
+                    await asyncio.sleep(0)
+
+                    classify_result = await ai_conversation_json(
+                        ai_message(
+                            "Du bekommst eine einzelne Freitextantwort und eine Liste von Kategorien.\n"
+                            "Aufgabe: Wähle die Kategorien aus, die wirklich (explizit) inhaltlich zur Antwort passen.\n"
+                            "Wichtig: Sei konservativ – wenn du unsicher bist, wähle die SONSTIGE Kategorie.\n"
+                            "Wichtig: Mehrfachzuordnung ist erlaubt, aber nur wenn klar mehrere Themen angesprochen werden. "
+                            "Vermeide Überinterpretation.\n"
+                            "Wichtig: Verwende ausschließlich Kategorien aus der gegebenen Liste.\n"
+                            "Gib nur Kategorienamen zurück, keine Paraphrasen oder Zitate.\n"
+                            "Optional: Wähle eine 'primary' Kategorie aus deinen gewählten Kategorien, die am repräsentativsten ist; "
+                            "falls keine Kategorie passt, setze categories=[] und primary=null.\n\n"
+                            f"Kategorien: {', '.join(topics)}\n\n"
+                            f"Antwort:\n{answer_text}\n\n"
+                            "Antworte ausschließlich als JSON gemäß Schema."
+                        ),
+                        json_schema = {
+                            "name": "answer_classification_schema",
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {"type": "string"},
+                                    },
+                                    "primary": {"type": ["string", "null"]},
+                                },
+                                "required": ["categories", "primary"],
+                                "additionalProperties": False,
+                            },
+                        },
+                    )
+
+                    selected: list[str] = []
+                    primary: str | None = None
+
+                    if not (isinstance(classify_result, dict) and classify_result.get("_error")):
+                        if isinstance(classify_result, dict):
+                            raw_selected = classify_result.get("categories")
+                            if isinstance(raw_selected, list):
+                                for t in raw_selected:
+                                    if isinstance(t, str) and t in topics:
+                                        selected.append(t)
+
+                            raw_primary = classify_result.get("primary")
+                            if isinstance(raw_primary, str) and raw_primary in topics:
+                                primary = raw_primary
+
+                    # De-duplicate & stabilize order.
+                    selected = list(dict.fromkeys(selected))
+                    if primary is not None and primary not in selected:
+                        primary = None
+
+                    for topic in selected:
+                        matches_by_topic.setdefault(topic, []).append(answer_idx)
+                        counts[topic] = len(matches_by_topic[topic])
+
+                        # Prefer an explicitly chosen representative example.
+                        if not examples.get(topic) or (primary == topic):
+                            examples[topic] = answer_text
+
+                    revised_ai_summary_freitext_topics_md.set(
+                        _render_progress_md(
+                            step     = f"Ordne Antwort {answer_idx}/{len(raw_answers)} zu",
+                            topics   = topics,
+                            counts   = counts,
+                            examples = examples,
+                            matches  = matches_by_topic,
+                        )
+                    )
+                    await reactive.flush()
+                    await asyncio.sleep(0)
+
+                # Stabilize topic match ordering.
+                for topic in topics:
+                    if topic in matches_by_topic:
+                        matches_by_topic[topic] = sorted(set(matches_by_topic[topic]))
+
+                # Sort topics by count desc, then name.
+                topics_sorted = sorted(topics, key=lambda t: (-counts.get(t, 0), t.lower()))
+
+                revised_ai_summary_freitext_topics_md.set(
+                    _render_progress_md(
+                        step     = "Erstelle Tabelle …",
+                        topics   = topics_sorted,
+                        counts   = counts,
+                        examples = examples,
+                    )
+                )
+                await reactive.flush()
+                await asyncio.sleep(0)
+
+                # Final assembly (table + nested list of verbatim answers)
+                revised_ai_summary_freitext_topics_md.set(
+                    _render_progress_md(
+                        topics   = topics,
+                        counts   = counts,
+                        examples = examples,
+                        matches  = matches_by_topic,
+                    )
+                )
+                await reactive.flush()
+                await asyncio.sleep(0)
+            except asyncio.CancelledError:
+                raise
+            except Exception as error:
+                revised_ai_summary_freitext_topics_md.set(f"Fehler bei der Themen-Generierung: {error}")
+                await reactive.flush()
+                await asyncio.sleep(0)
+
+        start_ai_task(coro=_run(), task_name="revised_topics")
 
     @render.ui
-    def revised_ai_summary_freitext_interpretation():
-        return ui.markdown(revised_ai_summary_freitext_interpretation_md.get() or "")
+    def revised_ai_summary_freitext_summary():
+        return ui.markdown(revised_ai_summary_freitext_summary_md.get() or "")
 
     @reactive.effect
     @reactive.event(input.btn_revised_ai_summary_freitext)
-    def _revised_ai_summary_freitext_interpretation_stream():
+    def _revised_ai_summary_freitext_summary_stream():
         df      = revised_filtered_surveys3()
         var     = "R205_01"
         label   = get_label(var)
         answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
-        question = """
-                   Stelle dir vor, du schreibst ein wissenschaftliches Paper, in dem über die
-                   Forschung zu studentischer Partizipation berichtet wird. Studentische Partizipation
-                   heißt hier, dass die Studierenden Einfluss auf die Vorlesung nehmen dürfen, indem
-                   sie bei relevanten Fragestellungen in die Entscheidung oder Umsetzung eingebunden
-                   werden.
-                   """ \
-                   f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                    f"{answers}\n\n" \
                    """
-                   Bitte fasse die Antworten zusammen und interpretiere sie als Textvorschlag
-                   für die Findings in diesem Paper. Welche Erkenntnisse lassen sich aus den
-                   Antworten ziehen?
+                   Bitte fasse die Antworten zusammen. Unterscheide dabei explizit zwischen
+                   Studentischer Partizipation (Studierende nehmen Einfluss auf die Vorlesung,
+                   indem sie bei relevanten Fragestellungen in Entscheidung oder Umsetzung eingebunden
+                   werden) als zusätzliche Ebene der Mitbestimmung zu den ohnehin vorhandenene Lern-
+                   bzw. Lehraktivitäten. Bedenke dabei auch, dass es sich um Eindrücke der Studierenden
+                   handelt, die durch die persönliche Brille verzerrt sein können.
+
+                   Wichtig: Antworte als Fließtext und vermeide lange Aufzählungen.
+                   Wichtig: Füge Überschriten und Zwischenüberschriften ein, um deine Antwort zu strukturieren.
+                   Wichtig: Nutze eine saubere Markdown-Formatierung für deine Antwort.
                    """
 
-        if not revised_ai_summary_freitext_interpretation_md.get():
+        if not revised_ai_summary_freitext_summary_md.get():
             start_ai_stream(
                 question=question,
-                target_md=revised_ai_summary_freitext_interpretation_md,
+                target_md=revised_ai_summary_freitext_summary_md,
                 task_name="revised_interpretation",
             )

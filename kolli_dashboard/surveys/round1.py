@@ -7,7 +7,7 @@
 
 from ..ai_llm import ai_conversation_available, cancel_ai_stream, start_ai_stream
 from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
-from shiny   import reactive, render, ui
+from shiny    import reactive, render, ui
 
 import faicons
 import pandas            as pd

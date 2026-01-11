@@ -10,8 +10,8 @@ import json
 import os
 
 from collections.abc   import AsyncIterator
-from typing            import Any, TypeAlias, cast
-from openai            import AsyncOpenAI, OpenAI
+from typing            import Any, Coroutine, TypeAlias, cast
+from openai            import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 from shiny             import reactive
 
@@ -40,9 +40,14 @@ def ai_message(
             cast(ChatCompletionMessageParam, {
                 "role": "system",
                 "content": "Wir haben verschiedene Umfragen unter den Studierenden gemacht, "
-                           "weil wir die Studierenden partizipativ in die Umsetzung von Lehr-Lern-Innovationen "
-                           "einbeziehen wollen. Wir nennen dies Kooperative Lehr-Lern-Innovationen. "
-                           "Bitte hilf uns bei der Beantwortung folgender Fragen zur Auswertung der Ergebnisse.",
+                           "weil wir die Studierenden partizipativ in Entscheidungen und die "
+                           "Mitgestaltung ihrer Vorlesungen einbeziehen wollen. Wir wollen also "
+                           "nicht nur Lernaktivitäten fördern, sondern darüber hinaus den Studierenden "
+                           "gezielte Einflussname ermöglichen. Bitte hilf uns bei der Beantwortung "
+                           "folgender Fragen zur Auswertung der Ergebnisse. Bitte beachte, dass es sich "
+                           "hierbei um Äußerungen zu mehreren Veranstaltungen von unterschiedlichen Lehrpersonen "
+                           "mit unterschiedlichen Inhalten und unterschiedlichen Arten und Tiefe der "
+                           "Einflussnahme handelt."
             })
         ]
 
@@ -76,80 +81,29 @@ def _openai_base_url() -> str:
 
     return f"https://{host}{prefix}"
 
-def _build_chat_completion_kwargs(
-    *,
-    max_tokens:            int   | None = None,
-    max_completion_tokens: int   | None = None,
-    temperature:           float | None = None,
-    top_p:                 float | None = None,
-    presence_penalty:      float | None = None,
-    frequency_penalty:     float | None = None,
-    seed:                  int   | None = None,
-    stop:                  str   | list[str] | None = None,
-) -> dict[str, Any]:
-    if max_tokens is not None and max_completion_tokens is not None:
-        raise ValueError("Only one of max_tokens or max_completion_tokens can be set")
-
-    kwargs: dict[str, Any] = {}
-
-    if max_tokens is not None:
-        kwargs["max_tokens"] = max_tokens
-    if max_completion_tokens is not None:
-        kwargs["max_completion_tokens"] = max_completion_tokens
-    if temperature is not None:
-        kwargs["temperature"] = temperature
-    if top_p is not None:
-        kwargs["top_p"] = top_p
-    if presence_penalty is not None:
-        kwargs["presence_penalty"] = presence_penalty
-    if frequency_penalty is not None:
-        kwargs["frequency_penalty"] = frequency_penalty
-    if seed is not None:
-        kwargs["seed"] = seed
-    if stop is not None:
-        kwargs["stop"] = stop
-
-    return kwargs
-
 def _parse_json_content(content: str) -> JsonValue:
     if not content.strip():
         return None
     return cast(JsonValue, json.loads(content))
 
-def ai_conversation(
+async def ai_conversation(
     messages: list[ChatCompletionMessageParam],
     *,
-    max_tokens:            int | None = None,
-    max_completion_tokens: int | None = None,
-    temperature:           float | None = None,
-    top_p:                 float | None = None,
-    presence_penalty:      float | None = None,
-    frequency_penalty:     float | None = None,
-    seed:                  int | None = None,
-    stop:                  str | list[str] | None = None,
     response_format:       dict[str, Any] | None = None,
     parse_json:            bool = False,
 ) -> str | JsonValue:
-    client = OpenAI(
+    client = AsyncOpenAI(
         api_key=_require_env("LLM_OPENAI_API_KEY"),
         base_url=_openai_base_url(),
     )
 
     try:
-        completion_kwargs = _build_chat_completion_kwargs(
-            max_tokens            = max_tokens,
-            max_completion_tokens = max_completion_tokens,
-            temperature           = temperature,
-            top_p                 = top_p,
-            presence_penalty      = presence_penalty,
-            frequency_penalty     = frequency_penalty,
-            seed                  = seed,
-            stop                  = stop,
-        )
+        completion_kwargs = {}
+
         if response_format is not None:
             completion_kwargs["response_format"] = response_format
 
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model    = _require_env("LLM_OPENAI_MODEL"),
             messages = messages,
             **completion_kwargs,
@@ -170,18 +124,10 @@ def ai_conversation(
     except Exception as error:
         return f"Fehler beim Aufruf der OpenAI API. Die Antwort war: {error}"
 
-def ai_conversation_json(
+async def ai_conversation_json(
     messages: list[ChatCompletionMessageParam],
     *,
     json_schema:           dict[str, Any] | None = None,
-    max_tokens:            int | None = None,
-    max_completion_tokens: int | None = None,
-    temperature:           float | None = None,
-    top_p:                 float | None = None,
-    presence_penalty:      float | None = None,
-    frequency_penalty:     float | None = None,
-    seed:                  int | None = None,
-    stop:                  str | list[str] | None = None,
 ) -> JsonValue:
     response_format: dict[str, Any]
     if json_schema is None:
@@ -189,18 +135,10 @@ def ai_conversation_json(
     else:
         response_format = {"type": "json_schema", "json_schema": json_schema}
 
-    result = ai_conversation(
+    result = await ai_conversation(
         messages,
-        max_tokens            = max_tokens,
-        max_completion_tokens = max_completion_tokens,
-        temperature           = temperature,
-        top_p                 = top_p,
-        presence_penalty      = presence_penalty,
-        frequency_penalty     = frequency_penalty,
-        seed                  = seed,
-        stop                  = stop,
-        response_format       = response_format,
-        parse_json            = True,
+        response_format = response_format,
+        parse_json      = True,
     )
 
     if isinstance(result, str):
@@ -210,15 +148,6 @@ def ai_conversation_json(
 
 async def ai_conversation_stream(
     messages: list[ChatCompletionMessageParam],
-    *,
-    max_tokens:            int | None = None,
-    max_completion_tokens: int | None = None,
-    temperature:           float | None = None,
-    top_p:                 float | None = None,
-    presence_penalty:      float | None = None,
-    frequency_penalty:     float | None = None,
-    seed:                  int | None = None,
-    stop:                  str | list[str] | None = None,
 ) -> AsyncIterator[str]:
     client = AsyncOpenAI(
         api_key=_require_env("LLM_OPENAI_API_KEY"),
@@ -228,22 +157,10 @@ async def ai_conversation_stream(
     accumulated = ""
 
     try:
-        completion_kwargs = _build_chat_completion_kwargs(
-            max_tokens            = max_tokens,
-            max_completion_tokens = max_completion_tokens,
-            temperature           = temperature,
-            top_p                 = top_p,
-            presence_penalty      = presence_penalty,
-            frequency_penalty     = frequency_penalty,
-            seed                  = seed,
-            stop                  = stop,
-        )
-
         stream = await client.chat.completions.create(
             model=_require_env("LLM_OPENAI_MODEL"),
             messages=messages,
             stream=True,
-            **completion_kwargs,
         )
 
         async for chunk in stream:
@@ -257,28 +174,39 @@ async def ai_conversation_stream(
     except Exception as error:
         yield f"Fehler beim Aufruf der OpenAI API. Die Antwort war: {error}"
 
-ai_stream_tasks: dict[str, asyncio.Task] = {}
+ai_tasks: dict[str, asyncio.Task] = {}
+
+def start_ai_task(*, coro: Coroutine[Any, Any, Any], task_name: str) -> None:
+    current_task = ai_tasks.get(task_name)
+
+    if current_task is not None:
+        current_task.cancel()
+
+    task = asyncio.create_task(coro)
+
+    ai_tasks[task_name] = task
+
+    def _on_done(done_task: asyncio.Task):
+        if ai_tasks.get(task_name) is done_task:
+            del ai_tasks[task_name]
+
+    task.add_done_callback(_on_done)
 
 def cancel_ai_stream(task_name: str) -> None:
-    task = ai_stream_tasks.get(task_name)
+    task = ai_tasks.get(task_name)
     if task is None:
         return
 
     task.cancel()
 
     # Remove immediately so a new task can be started right away.
-    if ai_stream_tasks.get(task_name) is task:
-        del ai_stream_tasks[task_name]
+    if ai_tasks.get(task_name) is task:
+        del ai_tasks[task_name]
 
 def start_ai_stream(*, question: str, target_md: reactive.Value, task_name: str) -> None:
-    current_task = ai_stream_tasks.get(task_name)
-
-    if current_task is not None:
-        current_task.cancel()
-
     async def _run_stream():
         try:
-            target_md.set("(Antwort wird generiert …)")
+            target_md.set("<span class='text-secondary'>Antwort wird generiert …</span>")
 
             async for partial in ai_conversation_stream(ai_message(question)):
                 target_md.set(partial)
@@ -287,12 +215,4 @@ def start_ai_stream(*, question: str, target_md: reactive.Value, task_name: str)
         except asyncio.CancelledError:
             raise
 
-    task = asyncio.create_task(_run_stream())
-
-    ai_stream_tasks[task_name] = task
-
-    def _on_done(done_task: asyncio.Task):
-        if ai_stream_tasks.get(task_name) is done_task:
-            del ai_stream_tasks[task_name]
-
-    task.add_done_callback(_on_done)
+    start_ai_task(coro=_run_stream(), task_name=task_name)
