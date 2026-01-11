@@ -13,3 +13,11 @@
     font-weight: normal;
     color: black;
 }
+
+body > nav {
+    .navbar-brand,
+    .navbar-nav a,
+    .nav-item a {
+        color: white !important;
+    }
+}

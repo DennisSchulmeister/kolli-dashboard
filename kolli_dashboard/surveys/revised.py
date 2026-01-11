@@ -5,7 +5,7 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
+from ..ai_llm import ai_conversation_available, cancel_ai_stream, start_ai_stream
 from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny    import reactive, render, ui
 
@@ -33,7 +33,7 @@ def revised_ui():
         ui.div(
             ui.p(
                 """
-                Beginnend mit Runde 2 wurde das Umfragedesign wurde so angepasst, dass nur noch eine summative Abschlussumfrage
+                Beginnend mit Runde 2 wurde das Umfragedesign so angepasst, dass nur noch eine summative Abschlussumfrage
                 mit den Studierenden am Ende des Semesters durchgeführt wurde. Einzige Ausnahme ist die Vorlesung von DESC, da
                 diese zeitlich zu früh lag, und daher mit einer früheren Version des Fragebogens arbeitet. Die Ergebnisse finden
                 sich deshalb unter den Spezialumfragen. Die Fragen des neuen Fragebogens sind am Angebot-Nutzen-Wirkungsmodell von
@@ -115,8 +115,16 @@ def revised_ui():
 # All Together
 #------------------------------------------------------------------------------
 def revised_server(input, output, session):
+    revised_ai_summary_freitext_topics_md = reactive.Value("")
+    revised_ai_summary_freitext_interpretation_md = reactive.Value("")
+
     @reactive.calc
     def revised_filtered_surveys3():
+        cancel_ai_stream("revised_topics")
+        cancel_ai_stream("revised_interpretation")
+        revised_ai_summary_freitext_topics_md.set("")
+        revised_ai_summary_freitext_interpretation_md.set("")
+
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
         questnnrs  = []
@@ -259,10 +267,6 @@ def revised_server(input, output, session):
     @reactive.event(input.btn_revised_ai_summary_freitext)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.navset_pill(
                 ui.nav_panel("Erwähnte Themen",
                     ui.div(
@@ -290,6 +294,11 @@ def revised_server(input, output, session):
 
     @render.ui
     def revised_ai_summary_freitext_topics():
+        return ui.markdown(revised_ai_summary_freitext_topics_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_revised_ai_summary_freitext)
+    def _revised_ai_summary_freitext_topics_stream():
         df      = revised_filtered_surveys3()
         var     = "R205_01"
         label   = get_label(var)
@@ -316,13 +325,21 @@ def revised_server(input, output, session):
                    Erstelle unterhalb der Tabelle zu Kontrollzwecken eine Auflistung aller Themen
                    und der Aussagen dazu. Du darfst die Aussagen Abkürzen aber nicht umformulieren!
                    """
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not revised_ai_summary_freitext_topics_md.get():
+            start_ai_stream(
+                question=question,
+                target_md=revised_ai_summary_freitext_topics_md,
+                task_name="revised_topics",
+            )
 
     @render.ui
     def revised_ai_summary_freitext_interpretation():
+        return ui.markdown(revised_ai_summary_freitext_interpretation_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_revised_ai_summary_freitext)
+    def _revised_ai_summary_freitext_interpretation_stream():
         df      = revised_filtered_surveys3()
         var     = "R205_01"
         label   = get_label(var)
@@ -342,7 +359,10 @@ def revised_server(input, output, session):
                    für die Findings in diesem Paper. Welche Erkenntnisse lassen sich aus den
                    Antworten ziehen?
                    """
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not revised_ai_summary_freitext_interpretation_md.get():
+            start_ai_stream(
+                question=question,
+                target_md=revised_ai_summary_freitext_interpretation_md,
+                task_name="revised_interpretation",
+            )

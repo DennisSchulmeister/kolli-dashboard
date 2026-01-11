@@ -5,7 +5,7 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
+from ..ai_llm import ai_conversation_available, cancel_ai_stream, start_ai_stream
 from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
@@ -286,8 +286,16 @@ def round1_server(input, output, session):
 # Semester Start Survey
 #------------------------------------------------------------------------------
 def round1_survey1_server(input, output, session):
+    round1_ai_summary_vorwissen1_md = reactive.Value("")
+    round1_ai_summary_bemerkungen1_md = reactive.Value("")
+
     @reactive.calc
     def round1_filtered_surveys1():
+        cancel_ai_stream("round1_vorwissen1")
+        cancel_ai_stream("round1_bemerkungen1")
+        round1_ai_summary_vorwissen1_md.set("")
+        round1_ai_summary_bemerkungen1_md.set("")
+
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
         questnnrs  = [f"R1-{teacher}-{lecture}-1" for teacher in teachers for lecture in lectures]
@@ -457,10 +465,6 @@ def round1_survey1_server(input, output, session):
     @reactive.event(input.btn_round1_ai_summary_vorwissen1)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.h6(get_label("V202_01")),
             ui.output_ui("round1_ai_summary_vorwissen1"),
                 title      = "Zusammenfassung der Antworten",
@@ -473,6 +477,14 @@ def round1_survey1_server(input, output, session):
 
     @render.ui
     def round1_ai_summary_vorwissen1():
+        return ui.markdown(round1_ai_summary_vorwissen1_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_vorwissen1)
+    def _round1_ai_summary_vorwissen1_stream():
+        if round1_ai_summary_vorwissen1_md.get():
+            return
+
         df      = round1_filtered_surveys1()
         var     = "V202_01"
         label   = get_label(var)
@@ -481,19 +493,18 @@ def round1_survey1_server(input, output, session):
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
                     f"Bitte fasse die Antworten zusammen."
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not round1_ai_summary_vorwissen1_md.get():
+            start_ai_stream(
+                question  = question,
+                target_md = round1_ai_summary_vorwissen1_md,
+                task_name = "round1_vorwissen1",
+            )
     
     @reactive.effect
     @reactive.event(input.btn_round1_ai_summary_bemerkungen1)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.h6(get_label("V210_01")),
             ui.output_ui("round1_ai_summary_bemerkungen1"),
                 title      = "Zusammenfassung der Antworten",
@@ -506,6 +517,14 @@ def round1_survey1_server(input, output, session):
 
     @render.ui
     def round1_ai_summary_bemerkungen1():
+        return ui.markdown(round1_ai_summary_bemerkungen1_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_bemerkungen1)
+    def _round1_ai_summary_bemerkungen1_stream():
+        if round1_ai_summary_bemerkungen1_md.get():
+            return
+
         df      = round1_filtered_surveys1()
         var     = "V210_01"
         label   = get_label(var)
@@ -514,17 +533,28 @@ def round1_survey1_server(input, output, session):
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
                     f"Bitte fasse die Antworten zusammen."
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not round1_ai_summary_bemerkungen1_md.get():
+            start_ai_stream(
+                question  = question,
+                target_md = round1_ai_summary_bemerkungen1_md,
+                task_name = "round1_bemerkungen1",
+            )
     
 #------------------------------------------------------------------------------
 # Semester Mid Survey
 #------------------------------------------------------------------------------
 def round1_survey2_server(input, output, session):
+    round1_ai_summary_lehr_lern_innovation2_md = reactive.Value("")
+    round1_ai_summary_unterstuetzung2_md = reactive.Value("")
+
     @reactive.calc
     def round1_filtered_surveys2():
+        cancel_ai_stream("round1_lehr_lern_innovation2")
+        cancel_ai_stream("round1_unterstuetzung2")
+        round1_ai_summary_lehr_lern_innovation2_md.set("")
+        round1_ai_summary_unterstuetzung2_md.set("")
+
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
         questnnrs  = [f"R1-{teacher}-{lecture}-2" for teacher in teachers for lecture in lectures]
@@ -647,10 +677,6 @@ def round1_survey2_server(input, output, session):
     @reactive.event(input.btn_round1_ai_summary_lehr_lern_innovation2)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.h6(get_label("ZW06_01")),
             ui.output_ui("round1_ai_summary_lehr_lern_innovation2"),
                 title      = "Zusammenfassung der Antworten",
@@ -663,6 +689,14 @@ def round1_survey2_server(input, output, session):
 
     @render.ui
     def round1_ai_summary_lehr_lern_innovation2():
+        return ui.markdown(round1_ai_summary_lehr_lern_innovation2_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_lehr_lern_innovation2)
+    def _round1_ai_summary_lehr_lern_innovation2_stream():
+        if round1_ai_summary_lehr_lern_innovation2_md.get():
+            return
+
         df      = round1_filtered_surveys2()
         var     = "ZW06_01"
         label   = get_label(var)
@@ -671,19 +705,18 @@ def round1_survey2_server(input, output, session):
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
                     f"Bitte fasse die Antworten zusammen."
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not round1_ai_summary_lehr_lern_innovation2_md.get():
+            start_ai_stream(
+                question  = question,
+                target_md = round1_ai_summary_lehr_lern_innovation2_md,
+                task_name = "round1_lehr_lern_innovation2",
+            )
 
     @reactive.effect
     @reactive.event(input.btn_round1_ai_summary_unterstuetzung2)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.h6(get_label("ZW05_01")),
             ui.output_ui("round1_ai_summary_unterstuetzung2"),
                 title      = "Zusammenfassung der Antworten",
@@ -696,25 +729,53 @@ def round1_survey2_server(input, output, session):
 
     @render.ui
     def round1_ai_summary_unterstuetzung2():
+        return ui.markdown(round1_ai_summary_unterstuetzung2_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_unterstuetzung2)
+    def _round1_ai_summary_unterstuetzung2_stream():
+        if round1_ai_summary_unterstuetzung2_md.get():
+            return
+
         df      = round1_filtered_surveys2()
         var     = "ZW05_01"
         label   = get_label(var)
         answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
         question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                    f"{answers}\n\n" \
-                    f"Bitte fasse die Antworten zusammen."
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+                   f"{answers}\n\n" \
+                   f"Bitte fasse die Antworten zusammen."
+
+        if not round1_ai_summary_unterstuetzung2_md.get():
+            start_ai_stream(
+                question  = question,
+                target_md = round1_ai_summary_unterstuetzung2_md,
+                task_name = "round1_unterstuetzung2",
+            )
 
 #------------------------------------------------------------------------------
 # Semester End Survey
 #------------------------------------------------------------------------------
 def round1_survey3_server(input, output, session):
+    round1_ai_summary_q1_freetext3_md = reactive.Value("")
+    round1_ai_summary_q2_freetext3_md = reactive.Value("")
+    round1_ai_summary_q3_freetext3_md = reactive.Value("")
+    round1_ai_summary_q4_freetext3_md = reactive.Value("")
+    round1_ai_summary_q5_freetext3_md = reactive.Value("")
+
     @reactive.calc
     def round1_filtered_surveys3():
+        cancel_ai_stream("round1_freetext3_AB01_01")
+        cancel_ai_stream("round1_freetext3_AB10_01")
+        cancel_ai_stream("round1_freetext3_AB11_01")
+        cancel_ai_stream("round1_freetext3_AB15_01")
+        cancel_ai_stream("round1_freetext3_AB12_01")
+        round1_ai_summary_q1_freetext3_md.set("")
+        round1_ai_summary_q2_freetext3_md.set("")
+        round1_ai_summary_q3_freetext3_md.set("")
+        round1_ai_summary_q4_freetext3_md.set("")
+        round1_ai_summary_q5_freetext3_md.set("")
+
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
         questnnrs  = [f"R1-{teacher}-{lecture}-3" for teacher in teachers for lecture in lectures]
@@ -895,10 +956,6 @@ def round1_survey3_server(input, output, session):
     @reactive.event(input.btn_round1_ai_summary_freetext3)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.navset_pill(
                 ui.nav_panel("Lehr-Lern-Innovation",
                     ui.div(
@@ -943,34 +1000,83 @@ def round1_survey3_server(input, output, session):
         )
 
         ui.modal_show(m)
-    
-    def round1_ai_summary_freetext3(var):
+
+    def _round1_ai_summary_freetext3_question(var: str) -> str:
         df = round1_filtered_surveys3()
         label = get_label(var)
         answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
-        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                    f"{answers}\n\n" \
-                    f"Bitte fasse die Antworten zusammen."
-    
-        return ai_conversation(ai_message(question))
+        return f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+               f"{answers}\n\n" \
+               f"Bitte fasse die Antworten zusammen."
 
     @render.ui
     def round1_ai_summary_q1_freetext3():
-        return ui.markdown(round1_ai_summary_freetext3("AB01_01"))
+        return ui.markdown(round1_ai_summary_q1_freetext3_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_freetext3)
+    def _round1_ai_summary_q1_freetext3_stream():
+        if not round1_ai_summary_q1_freetext3_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_freetext3_question("AB01_01"),
+                target_md = round1_ai_summary_q1_freetext3_md,
+                task_name = "round1_freetext3_AB01_01",
+            )
     
     @render.ui
     def round1_ai_summary_q2_freetext3():
-        return ui.markdown(round1_ai_summary_freetext3("AB10_01"))
+        return ui.markdown(round1_ai_summary_q2_freetext3_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_freetext3)
+    def _round1_ai_summary_q2_freetext3_stream():
+        if not round1_ai_summary_q2_freetext3_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_freetext3_question("AB10_01"),
+                target_md = round1_ai_summary_q2_freetext3_md,
+                task_name = "round1_freetext3_AB10_01",
+            )
     
     @render.ui
     def round1_ai_summary_q3_freetext3():
-        return ui.markdown(round1_ai_summary_freetext3("AB11_01"))
+        return ui.markdown(round1_ai_summary_q3_freetext3_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_freetext3)
+    def _round1_ai_summary_q3_freetext3_stream():
+        if round1_ai_summary_q3_freetext3_md.get():
+            return
+        start_ai_stream(
+            question=_round1_ai_summary_freetext3_question("AB11_01"),
+            target_md=round1_ai_summary_q3_freetext3_md,
+            task_name="round1_freetext3_AB11_01",
+        )
     
     @render.ui
     def round1_ai_summary_q4_freetext3():
-        return ui.markdown(round1_ai_summary_freetext3("AB15_01"))
+        return ui.markdown(round1_ai_summary_q4_freetext3_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_freetext3)
+    def _round1_ai_summary_q4_freetext3_stream():
+        if not round1_ai_summary_q4_freetext3_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_freetext3_question("AB15_01"),
+                target_md = round1_ai_summary_q4_freetext3_md,
+                task_name = "round1_freetext3_AB15_01",
+            )
     
     @render.ui
     def round1_ai_summary_q5_freetext3():
-        return ui.markdown(round1_ai_summary_freetext3("AB12_01"))
+        return ui.markdown(round1_ai_summary_q5_freetext3_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_freetext3)
+    def _round1_ai_summary_q5_freetext3_stream():
+        if not round1_ai_summary_q5_freetext3_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_freetext3_question("AB12_01"),
+                target_md = round1_ai_summary_q5_freetext3_md,
+                task_name = "round1_freetext3_AB12_01",
+            )

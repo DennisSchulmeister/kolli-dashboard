@@ -93,14 +93,14 @@ def sidebar_server(input, output, session):
     @reactive.event(input.btn_correlation_filter)
     def _():    
         m = ui.modal(
-            ui.panel_well(
+            ui.card(
                 """
                 Hier können die angezeigten Umfrageergebnisse weiter eingeschränkt werden,
                 um nur Ergebnisse mit bestimmten Antworten zu sehen. Auf diese Weise können
                 Zusammenhänge zwischen den Fragen untersucht werden. Die Filter wirken sich
                 nur auf den jeweiligen Umfragetyp aus.
                 """,
-                class_="mb-4",
+                class_="mb-4 bg-light",
             ),
             ui.navset_pill(
                 ui.nav_panel(

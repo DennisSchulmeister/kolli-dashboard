@@ -5,7 +5,7 @@
 # This source code is licensed under the BSD 3-Clause License found in the
 # LICENSE file in the root directory of this source tree.
 
-from ..ai_llm import ai_conversation, ai_conversation_available, ai_message
+from ..ai_llm import ai_conversation_available, cancel_ai_stream, start_ai_stream
 from ..data   import calc_likert_statistics, correlation_filters, data, get_label, plot_likert_chart
 from shiny   import reactive, render, ui
 
@@ -36,7 +36,7 @@ def special_ui():
     return [
         ui.h4("Runde 2 – Studentische Evaluation"),
         ui.navset_pill(
-            ui.nav_panel("Rinde 1: DIRA Lerntagebücher", ui.div(special_dira_r1_special_ui(), class_="mt-4")),
+            ui.nav_panel("Runde 1: DIRA Lerntagebücher", ui.div(special_dira_r1_special_ui(), class_="mt-4")),
             ui.nav_panel("Runde 2: DESC Allgemein", ui.div(special_desc_r2_general_ui(), class_="mt-4")),
             ui.nav_panel("Runde 2: DESC Lernziele", ui.div(special_desc_r2_objectives_ui(), class_="mt-4")),
             ui.nav_panel("Runde 2: DESC Prüfungsaufgabe", ui.div(special_desc_r2_assessment_ui(), class_="mt-4")),
@@ -428,8 +428,25 @@ def special_server(input, output, session):
 # DIRA2 Learning Diaries
 #------------------------------------------------------------------------------
 def special_dira_r1_special_server(input, output, session):
+    round1_ai_summary_q1_dira2_special_md = reactive.Value("")
+    round1_ai_summary_q2_dira2_special_md = reactive.Value("")
+    round1_ai_summary_q3_dira2_special_md = reactive.Value("")
+    round1_ai_summary_q4_dira2_special_md = reactive.Value("")
+    round1_ai_summary_q5_dira2_special_md = reactive.Value("")
+
     @reactive.calc
     def round1_filtered_surveys_dira2_special():
+        cancel_ai_stream("special_dira2_DR01_01")
+        cancel_ai_stream("special_dira2_DR02_01")
+        cancel_ai_stream("special_dira2_DR03_01")
+        cancel_ai_stream("special_dira2_DR04_01")
+        cancel_ai_stream("special_dira2_DR05_01")
+        round1_ai_summary_q1_dira2_special_md.set("")
+        round1_ai_summary_q2_dira2_special_md.set("")
+        round1_ai_summary_q3_dira2_special_md.set("")
+        round1_ai_summary_q4_dira2_special_md.set("")
+        round1_ai_summary_q5_dira2_special_md.set("")
+
         teachers   = input.teachers() or data["teachers"]
         lectures   = input.lectures() or data["lectures"]
         questnnrs  = []
@@ -543,10 +560,6 @@ def special_dira_r1_special_server(input, output, session):
     @reactive.event(input.btn_round1_ai_summary_dira2_special)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Beim ersten Klick auf eine Frage bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.navset_pill(
                 ui.nav_panel("Frage 1",
                     ui.div(
@@ -592,36 +605,84 @@ def special_dira_r1_special_server(input, output, session):
 
         ui.modal_show(m)
     
-    def round1_ai_summary_dira2_special(var):
+    def _round1_ai_summary_dira2_special_question(var: str) -> str:
         df = round1_filtered_surveys_dira2_special()
         label = get_label(var)
         answers = " - " + "\n - ".join(df[var].dropna().astype(str).unique().tolist())
 
-        question = f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
-                    f"{answers}\n\n" \
-                    f"Bitte fasse die Antworten zusammen."
-    
-        return ai_conversation(ai_message(question))
+        return f"Auf die Frage '{label}' haben die Studierenden folgendes geantwortet.\n\n" \
+               f"{answers}\n\n" \
+               f"Bitte fasse die Antworten zusammen."
 
     @render.ui
     def round1_ai_summary_q1_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR01_01"))
+        return ui.markdown(round1_ai_summary_q1_dira2_special_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_dira2_special)
+    def _round1_ai_summary_q1_dira2_special_stream():
+        if not round1_ai_summary_q1_dira2_special_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_dira2_special_question("DR01_01"),
+                target_md = round1_ai_summary_q1_dira2_special_md,
+                task_name = "special_dira2_DR01_01",
+            )
     
     @render.ui
     def round1_ai_summary_q2_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR02_01"))
+        return ui.markdown(round1_ai_summary_q2_dira2_special_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_dira2_special)
+    def _round1_ai_summary_q2_dira2_special_stream():
+        if not round1_ai_summary_q2_dira2_special_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_dira2_special_question("DR02_01"),
+                target_md = round1_ai_summary_q2_dira2_special_md,
+                task_name = "special_dira2_DR02_01",
+            )
     
     @render.ui
     def round1_ai_summary_q3_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR03_01"))
+        return ui.markdown(round1_ai_summary_q3_dira2_special_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_dira2_special)
+    def _round1_ai_summary_q3_dira2_special_stream():
+        if not round1_ai_summary_q3_dira2_special_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_dira2_special_question("DR03_01"),
+                target_md = round1_ai_summary_q3_dira2_special_md,
+                task_name = "special_dira2_DR03_01",
+            )
     
     @render.ui
     def round1_ai_summary_q4_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR04_01"))
+        return ui.markdown(round1_ai_summary_q4_dira2_special_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_dira2_special)
+    def _round1_ai_summary_q4_dira2_special_stream():
+        if not round1_ai_summary_q4_dira2_special_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_dira2_special_question("DR04_01"),
+                target_md = round1_ai_summary_q4_dira2_special_md,
+                task_name = "special_dira2_DR04_01",
+            )
     
     @render.ui
     def round1_ai_summary_q5_dira2_special():
-        return ui.markdown(round1_ai_summary_dira2_special("DR05_01"))
+        return ui.markdown(round1_ai_summary_q5_dira2_special_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_round1_ai_summary_dira2_special)
+    def _round1_ai_summary_q5_dira2_special_stream():
+        if not round1_ai_summary_q5_dira2_special_md.get():
+            start_ai_stream(
+                question  = _round1_ai_summary_dira2_special_question("DR05_01"),
+                target_md = round1_ai_summary_q5_dira2_special_md,
+                task_name = "special_dira2_DR05_01",
+            )
 
 #------------------------------------------------------------------------------
 # DESCH2 Participation in General
@@ -1153,8 +1214,13 @@ def special_desc_r2_reflection_server(input, output, session):
 # Innovative Learning Room
 #------------------------------------------------------------------------------
 def special_learning_roomserver(input, output, session):
+    ai_summary_others_lr1_md = reactive.Value("")
+
     @reactive.calc
     def filtered_surveys_lr1():
+        cancel_ai_stream("special_others_lr1_IL14_01")
+        ai_summary_others_lr1_md.set("")
+
         questnnrs  = ["LERNRAUM-1"]
         start_date = pd.to_datetime(input.date_range()[0])
         end_date   = pd.to_datetime(input.date_range()[1])
@@ -1408,10 +1474,6 @@ def special_learning_roomserver(input, output, session):
     @reactive.event(input.btn_ai_summary_others_lr1)
     def _():
         m = ui.modal(
-            ui.panel_well(
-                "Bitte warten, bis die Antwort erscheint.",
-                class_="mb-4",
-            ),
             ui.h6(get_label("IL14_01")),
             ui.output_ui("ai_summary_others_lr1"),
             title      = "Zusammenfassung der Antworten",
@@ -1424,6 +1486,11 @@ def special_learning_roomserver(input, output, session):
 
     @render.ui
     def ai_summary_others_lr1():
+        return ui.markdown(ai_summary_others_lr1_md.get() or "")
+
+    @reactive.effect
+    @reactive.event(input.btn_ai_summary_others_lr1)
+    def _ai_summary_others_lr1_stream():
         df      = filtered_surveys_lr1()
         var     = "IL14_01"
         label   = get_label(var)
@@ -1432,8 +1499,11 @@ def special_learning_roomserver(input, output, session):
         question = f"Auf die Frage '{label}' haben die Lehrenden folgendes geantwortet.\n\n" \
                     f"{answers}\n\n" \
                     f"Bitte fasse die Antworten zusammen."
-    
-        return ui.markdown(
-            ai_conversation(ai_message(question))
-        )
+
+        if not ai_summary_others_lr1_md():
+            start_ai_stream(
+                question=question,
+                target_md=ai_summary_others_lr1_md,
+                task_name="special_others_lr1_IL14_01",
+            )
     
