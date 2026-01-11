@@ -289,12 +289,12 @@ def calc_likert_statistics(input, data, *vars):
         ordinal_values = series.map(ordinal_map).dropna()
         counts = ordinal_values.value_counts(dropna=True).reindex(ordinal_order, fill_value=0)
         total  = int(counts.sum())
-        mean   = ordinal_values.mean().round(2)
+        mean   = ordinal_values.mean().round(1)
         stddev = ordinal_values.std() if ordinal_values.shape[0] >= 2 else pd.NA
 
         if plot_percentage:
             scale_values = {
-                str(scale_value): (f"{round((int(counts.loc[scale_value]) / total) * 100, 2)}%" if total else pd.NA)
+                str(scale_value): (f"{round((int(counts.loc[scale_value]) / total) * 100)}%" if total else pd.NA)
                 for scale_value in ordinal_order
             }
         else:
