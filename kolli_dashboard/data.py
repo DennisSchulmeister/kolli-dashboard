@@ -110,7 +110,7 @@ def __init__():
     }
 
 data    = __init__()
-version = "2.0.0"
+version = "2.0.1"
 
 # Reactive values for correlation filters
 correlation_filters = {
@@ -265,7 +265,7 @@ def calc_likert_statistics(input, data, *vars):
     df = data[[*vars]]
     df = df.rename(columns={var: get_label(var) for var in vars})
 
-    ordinal_order = [-2, -1, 0, 1, 2]
+    ordinal_order = [1, 2, 3, 4, 5]
     ordinal_scale = [str(v) for v in ordinal_order]
     ordinal_map   = {scale_value: ordinal_order[i] for i, scale_value in enumerate(scale_minus_plus)}
 
@@ -304,10 +304,10 @@ def calc_likert_statistics(input, data, *vars):
             "Frage": question,
             **scale_values,
             "N": total,
-            "M": mean,
             "MD": _ordinal_median(series),
+            "M": mean,
             "SD": (round(float(stddev), 2) if pd.notna(stddev) else pd.NA),
         }
         rows.append(row)
 
-    return pd.DataFrame(rows, columns=["Frage", *ordinal_scale, "N", "M", "MD", "SD"])
+    return pd.DataFrame(rows, columns=["Frage", *ordinal_scale, "N", "MD", "M", "SD"])
