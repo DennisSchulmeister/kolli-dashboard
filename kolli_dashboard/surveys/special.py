@@ -34,7 +34,7 @@ icon_no       = faicons.icon_svg("xmark",           width="25px")
 
 def special_ui():
     return [
-        ui.h4("Runde 2 – Studentische Evaluation"),
+        ui.h4("Spezialumfragen"),
         ui.navset_pill(
             ui.nav_panel("Runde 1: DIRA Lerntagebücher", ui.div(special_dira_r1_special_ui(), class_="mt-4")),
             ui.nav_panel("Runde 2: DESC Allgemein", ui.div(special_desc_r2_general_ui(), class_="mt-4")),
